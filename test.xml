@@ -1,0 +1,795 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns:yt="http://www.youtube.com/xml/schemas/2015" xmlns:media="http://search.yahoo.com/mrss/" xmlns="http://www.w3.org/2005/Atom">
+ <link rel="self" href="http://www.youtube.com/feeds/videos.xml?channel_id=UCrqM0Ym_NbK1fqeQG2VIohg"/>
+ <id>yt:channel:</id>
+ <yt:channelId></yt:channelId>
+ <title>Tsoding Daily</title>
+ <link rel="alternate" href="https://www.youtube.com/channel/UCrqM0Ym_NbK1fqeQG2VIohg"/>
+ <author>
+  <name>Tsoding Daily</name>
+  <uri>https://www.youtube.com/channel/UCrqM0Ym_NbK1fqeQG2VIohg</uri>
+ </author>
+ <published>2019-01-12T00:02:33+00:00</published>
+ <entry>
+  <id>yt:video:YvNlVAkHVwk</id>
+  <yt:videoId>YvNlVAkHVwk</yt:videoId>
+  <yt:channelId>UCrqM0Ym_NbK1fqeQG2VIohg</yt:channelId>
+  <title>Amazingly Flexible C code without OOP or FP Ideological Bullsh*t</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=YvNlVAkHVwk"/>
+  <author>
+   <name>Tsoding Daily</name>
+   <uri>https://www.youtube.com/channel/UCrqM0Ym_NbK1fqeQG2VIohg</uri>
+  </author>
+  <published>2023-04-13T14:50:34+00:00</published>
+  <updated>2023-04-13T14:50:34+00:00</updated>
+  <media:group>
+   <media:title>Amazingly Flexible C code without OOP or FP Ideological Bullsh*t</media:title>
+   <media:content url="https://www.youtube.com/v/YvNlVAkHVwk?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i2.ytimg.com/vi/YvNlVAkHVwk/hqdefault.jpg" width="480" height="360"/>
+   <media:description>Amazingly Flexible C code is at 12:46
+
+Chapters:
+- 00:00:00 - Intro
+- 00:00:56 - Recap
+- 00:03:48 - Near/Far Clipping Planes
+- 00:07:27 - Reproducing the Problem
+- 00:12:46 - Cup3d and Teapot3d share the same code
+- 00:16:38 - How the 3D demos work
+- 00:19:59 - Naive Attempt at Clipping Planes
+- 00:27:00 - Handling keys
+- 00:32:37 - Printing stats
+- 00:36:40 - Checking for NaNs
+- 00:42:18 - Infinite z-values
+- 00:44:50 - Clipping by 1/z
+- 00:46:42 - Pixel authorization
+- 00:47:59 - Testing the 1/z clipping
+- 00:48:55 - Q: Do you have a CS degree?
+- 00:50:10 - Q: Are you authorizing a pixel or vertex of a triangle?
+- 00:50:47 - Clipping planes almost work
+- 00:52:39 - Trying to gaslight myself into believing that there are no bugs
+- 00:53:03 - Reproducing bug with Cup3d
+- 00:54:06 - Negative z bug
+- 01:02:14 - Naive fix for the negative z bug
+- 01:05:11 - Q: How will you handle the rainbow texture with 2 triangles?
+- 01:06:42 - Looking for easier fix of negative z bug
+- 01:09:31 - Mirroring negative z values
+- 01:17:15 - Looking inside of the Utah Teapot
+- 01:20:05 - z == 0
+- 01:21:59 - Finalizing the solution
+- 01:32:18 - Outro
+- 01:33:07 - Smooch
+
+References:
+- Source Code: https://github.com/tsoding/olive.c</media:description>
+   <media:community>
+    <media:starRating count="429" average="5.00" min="1" max="5"/>
+    <media:statistics views="13458"/>
+   </media:community>
+  </media:group>
+ </entry>
+ <entry>
+  <id>yt:video:vb7pX7pI7lI</id>
+  <yt:videoId>vb7pX7pI7lI</yt:videoId>
+  <yt:channelId>UCrqM0Ym_NbK1fqeQG2VIohg</yt:channelId>
+  <title>I compared Two PDF Libraries. C one was faster than Rust one.</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=vb7pX7pI7lI"/>
+  <author>
+   <name>Tsoding Daily</name>
+   <uri>https://www.youtube.com/channel/UCrqM0Ym_NbK1fqeQG2VIohg</uri>
+  </author>
+  <published>2023-04-07T14:59:19+00:00</published>
+  <updated>2023-04-07T22:44:52+00:00</updated>
+  <media:group>
+   <media:title>I compared Two PDF Libraries. C one was faster than Rust one.</media:title>
+   <media:content url="https://www.youtube.com/v/vb7pX7pI7lI?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i3.ytimg.com/vi/vb7pX7pI7lI/hqdefault.jpg" width="480" height="360"/>
+   <media:description>Chapters:
+- 00:00:00 - Intro
+- 00:00:40 - Recap
+- 00:03:15 - Demo
+- 00:04:59 - lopdf
+- 00:07:43 - Installing lopdf
+- 00:10:12 - Studying lopdf docs
+- 00:12:04 - Trying out lopdf
+- 00:16:18 - Trying out lopdf on bigger PDF
+- 00:20:31 - Performance concerns with lopdf
+- 00:21:19 - Extracting text with lopdf
+- 00:25:26 - Realizing a huge mistake
+- 00:26:28 - pdftotext
+- 00:29:21 - poppler
+- 00:32:06 - Studying poppler docs
+- 00:32:34 - Trying out poppler
+- 00:38:59 - Poppler is just faster
+- 00:40:40 - Extracting text with poppler
+- 00:47:06 - Price of poppler
+- 00:50:07 - Integrating poppler into indexing
+- 00:59:21 - Testing the indexing of PDF papers
+- 01:11:09 - On Reading Books
+- 01:14:16 - On The Price of Dependencies
+- 01:18:05 - Wrapping up
+- 01:18:53 - QnA
+- 01:21:53 - Outro
+- 01:22:07 - Smooch
+
+
+References:
+- Source Code: https://github.com/tsoding/seroost
+- Rust PDF library: https://github.com/J-F-Liu/lopdf
+- C PDF library: https://poppler.freedesktop.org/
+- PDF papers:
+  - https://arxiv.org/abs/1706.03762
+  - https://people.freebsd.org/~lstewart/articles/cpumemory.pdf
+  - https://arxiv.org/pdf/2303.12712.pdf</media:description>
+   <media:community>
+    <media:starRating count="399" average="5.00" min="1" max="5"/>
+    <media:statistics views="13494"/>
+   </media:community>
+  </media:group>
+ </entry>
+ <entry>
+  <id>yt:video:aqK_nRCpcX8</id>
+  <yt:videoId>aqK_nRCpcX8</yt:videoId>
+  <yt:channelId>UCrqM0Ym_NbK1fqeQG2VIohg</yt:channelId>
+  <title>The Most Powerful Idea in Computer Graphics</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=aqK_nRCpcX8"/>
+  <author>
+   <name>Tsoding Daily</name>
+   <uri>https://www.youtube.com/channel/UCrqM0Ym_NbK1fqeQG2VIohg</uri>
+  </author>
+  <published>2023-04-05T15:00:36+00:00</published>
+  <updated>2023-04-12T03:46:55+00:00</updated>
+  <media:group>
+   <media:title>The Most Powerful Idea in Computer Graphics</media:title>
+   <media:content url="https://www.youtube.com/v/aqK_nRCpcX8?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i2.ytimg.com/vi/aqK_nRCpcX8/hqdefault.jpg" width="480" height="360"/>
+   <media:description>Chapters:
+- 00:00:00 - Intro
+- 00:00:22 - How to Draw a Circle
+- 00:02:34 - The Powerful Idea behind Ellipse
+- 00:08:25 - olivec_ellipse()
+- 00:13:01 - test_fill_ellipse
+- 00:15:13 - Something went wrong
+- 00:15:42 - Constant folding
+- 00:17:52 - Making ellipse smaller
+- 00:19:13 - Rendering artifacts
+- 00:21:16 - Q: Do I do Advent of Code?
+- 00:22:42 - Q: What do you use to generate PNG?
+- 00:23:50 - Review of the Library
+- 00:24:38 - Mapping Coordinates is Too Powerful
+- 00:25:16 - About Matrices
+- 00:27:02 - How we are doing 3D
+- 00:27:40 - Q: Any resources on where to learn all of that?
+- 00:28:07 - If you need to do graphics on GPU you don't need Olive.c
+- 00:28:55 - Outro
+- 00:29:09 - Smooch
+
+References:
+- Source Code: https://github.com/tsoding/olive.c</media:description>
+   <media:community>
+    <media:starRating count="367" average="5.00" min="1" max="5"/>
+    <media:statistics views="10589"/>
+   </media:community>
+  </media:group>
+ </entry>
+ <entry>
+  <id>yt:video:Yi6NxMxCFY8</id>
+  <yt:videoId>Yi6NxMxCFY8</yt:videoId>
+  <yt:channelId>UCrqM0Ym_NbK1fqeQG2VIohg</yt:channelId>
+  <title>Ok, I made C compiler in PHP</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=Yi6NxMxCFY8"/>
+  <author>
+   <name>Tsoding Daily</name>
+   <uri>https://www.youtube.com/channel/UCrqM0Ym_NbK1fqeQG2VIohg</uri>
+  </author>
+  <published>2023-04-04T16:08:48+00:00</published>
+  <updated>2023-04-04T22:20:04+00:00</updated>
+  <media:group>
+   <media:title>Ok, I made C compiler in PHP</media:title>
+   <media:content url="https://www.youtube.com/v/Yi6NxMxCFY8?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i2.ytimg.com/vi/Yi6NxMxCFY8/hqdefault.jpg" width="480" height="360"/>
+   <media:description>I initially planned to compile C into Assembly but due to limited time I implemented only the Python backend. But the code is pretty flexible. So if you need the Assembly backend feel free to submit a PR: https://github.com/tsoding/c.php
+
+Chapters:
+- Coming soon...
+
+References:
+- https://stackoverflow.com/questions/22140204/why-md5240610708-is-equal-to-md5qnkcdzo
+- https://github.com/tsoding/c.php</media:description>
+   <media:community>
+    <media:starRating count="1024" average="5.00" min="1" max="5"/>
+    <media:statistics views="28904"/>
+   </media:community>
+  </media:group>
+ </entry>
+ <entry>
+  <id>yt:video:cdVCpS4qvRA</id>
+  <yt:videoId>cdVCpS4qvRA</yt:videoId>
+  <yt:channelId>UCrqM0Ym_NbK1fqeQG2VIohg</yt:channelId>
+  <title>Coding Math Despite being Traumatized by Education System</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=cdVCpS4qvRA"/>
+  <author>
+   <name>Tsoding Daily</name>
+   <uri>https://www.youtube.com/channel/UCrqM0Ym_NbK1fqeQG2VIohg</uri>
+  </author>
+  <published>2023-03-30T15:06:24+00:00</published>
+  <updated>2023-04-05T18:45:14+00:00</updated>
+  <media:group>
+   <media:title>Coding Math Despite being Traumatized by Education System</media:title>
+   <media:content url="https://www.youtube.com/v/cdVCpS4qvRA?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i4.ytimg.com/vi/cdVCpS4qvRA/hqdefault.jpg" width="480" height="360"/>
+   <media:description>Chapters:
+- 00:00:00 - Intro
+- 00:01:43 - Recap
+- 00:03:15 - Plan for Today
+- 00:05:32 - Why the Library is So Messy?
+- 00:07:10 - How Bilinear Interpolation is Implemented
+- 00:07:45 - What we need to do.
+- 00:10:07 - Q: Why don't you handle square rectangles with 2 triangles?
+- 00:11:51 - Q: If you didn't English before the last 10 years how did you code?
+- 00:12:39 - Q: Will you get rid of SDL at some point?
+- 00:13:00 - Q: On the Modern Programming Culture
+- 00:14:26 - olivec_bilinear_pixel()
+- 00:16:02 - On Reinventing the Wheel
+- 00:17:22 - How olivec_bilinear_pixel() supposed to work
+- 00:18:19 - Implementing olivec_bilinear_pixel()
+- 00:22:53 - Q: Am I making a Software Renderer?
+- 00:25:43 - Q: Do I plan to use SIMD or multi-threading?
+- 00:26:30 - Small recap
+- 00:27:37 - Enhancing olivec_triangle3uv()
+- 00:30:46 - Q: How do you install Software on Linux?
+- 00:31:06 - Q: How much BTC for Python Interpreter in Haskell?
+- 00:32:21 - Introducing precision
+- 00:35:36 - Testing the final result
+- 00:38:12 - We need more interesting textures
+- 00:39:31 - olivec_triangle3uv_bilinear()
+- 00:45:24 - More interesting textures
+- 00:56:18 - nobuild
+- 00:58:35 - Fixing texture coordinates
+- 01:04:26 - Testing in Terminal
+- 01:05:48 - Q: Where do I start if I wanna become Master Programmer?
+- 01:06:40 - Q: Have you ever qualified for ACM ICPC?
+- 01:07:55 - Bug in terminal output
+- 01:09:39 - Q: Will you make Doom in Terminal?
+- 01:11:10 - Increasing the resolution of textures
+- 01:12:27 - My thoughts on the future of competitive programming
+- 01:14:16 - Continue increasing the resolution of textures
+- 01:15:30 - Q: Have I ever worked in GameDev?
+- 01:19:21 - On Math Education Traumatizing People
+- 01:21:22 - Committing the final result
+- 01:22:46 - Fixing the background
+- 01:23:16 - On the definition of derivative
+- 01:24:09 - Commiting background fix
+
+References:
+- Source Code: https://github.com/tsoding/olive.c</media:description>
+   <media:community>
+    <media:starRating count="390" average="5.00" min="1" max="5"/>
+    <media:statistics views="11639"/>
+   </media:community>
+  </media:group>
+ </entry>
+ <entry>
+  <id>yt:video:WHwhBsI-i78</id>
+  <yt:videoId>WHwhBsI-i78</yt:videoId>
+  <yt:channelId>UCrqM0Ym_NbK1fqeQG2VIohg</yt:channelId>
+  <title>Fixing Pixelated Images with C</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=WHwhBsI-i78"/>
+  <author>
+   <name>Tsoding Daily</name>
+   <uri>https://www.youtube.com/channel/UCrqM0Ym_NbK1fqeQG2VIohg</uri>
+  </author>
+  <published>2023-03-28T14:59:22+00:00</published>
+  <updated>2023-04-03T19:42:52+00:00</updated>
+  <media:group>
+   <media:title>Fixing Pixelated Images with C</media:title>
+   <media:content url="https://www.youtube.com/v/WHwhBsI-i78?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i4.ytimg.com/vi/WHwhBsI-i78/hqdefault.jpg" width="480" height="360"/>
+   <media:description>Chapters:
+- 00:00:00 - 1. Intro
+- 00:01:55 - 1.2. Recap
+- 00:04:21 - 1.3. Pixelation
+- 00:06:25 - 1.4. What do we use to render
+- 00:09:28 - 1.5. Visual explanation of pixelation
+- 00:16:53 - 2. Bilinear Interpolation
+- 00:25:18 - 2.1. bilinear_interpolation test
+- 00:32:30 - 2.2. olivec_sprite_copy_bilinear()
+- 00:34:57 - 2.3. Rectangle Normalization
+- 00:43:20 - 2.4. Flipping the texture
+- 00:44:48 - 2.5. TODOs
+- 00:46:18 - 2.6. Continue olivec_sprite_copy_bilinear()
+- 01:02:20 - 2.7. mix_colors2()
+- 01:04:31 - 2.8. Continue olivec_sprite_copy_bilinear()
+- 01:25:24 - 2.9. Double checking corner cases
+- 01:32:34 - 2.10. Rethinking the approach
+- 01:54:13 - 2.11. Bug in mix_colors2()
+- 01:58:27 - 3. Streaming Programming on Twitch
+- 02:01:06 - 4. Update Demos
+- 02:13:45 - 5. Outro
+
+References:
+- Source Code: https://github.com/tsoding/olive.c</media:description>
+   <media:community>
+    <media:starRating count="345" average="5.00" min="1" max="5"/>
+    <media:statistics views="9960"/>
+   </media:community>
+  </media:group>
+ </entry>
+ <entry>
+  <id>yt:video:9JULWqjM0Wg</id>
+  <yt:videoId>9JULWqjM0Wg</yt:videoId>
+  <yt:channelId>UCrqM0Ym_NbK1fqeQG2VIohg</yt:channelId>
+  <title>Rust Multi-Threading</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=9JULWqjM0Wg"/>
+  <author>
+   <name>Tsoding Daily</name>
+   <uri>https://www.youtube.com/channel/UCrqM0Ym_NbK1fqeQG2VIohg</uri>
+  </author>
+  <published>2023-03-26T14:52:34+00:00</published>
+  <updated>2023-04-02T14:09:06+00:00</updated>
+  <media:group>
+   <media:title>Rust Multi-Threading</media:title>
+   <media:content url="https://www.youtube.com/v/9JULWqjM0Wg?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i2.ytimg.com/vi/9JULWqjM0Wg/hqdefault.jpg" width="480" height="360"/>
+   <media:description>Chapters:
+- 00:00:00 - 1. Intro
+- 00:03:06 - 2. Plan for today
+- 00:04:47 - 3. Incremental indexing
+- 00:06:07 - 3.1. Doc::last_modified
+- 00:21:15 - 3.2. Ignoring already indexed files
+- 00:24:43 - 3.3. Replacing Documents in Model
+- 00:31:35 - 3.3.1. Trying to trigger remove_document()
+- 00:56:52 - 3.3.2. Implementing remove_document()
+- 01:03:06 - 4. Indexing thread
+- 01:04:40 - 4.1. On indexing of errored files
+- 01:06:18 - 4.2. Path to Index
+- 01:23:10 - 4.3. Check if index file exists
+- 01:26:47 - 4.4. Sharing the model between threads
+- 01:45:46 - 5. Testing the result
+- 01:49:42 - 6. Outro
+
+References:
+- Source Code: https://github.com/tsoding/seroost
+- Tf-Idf https://en.wikipedia.org/wiki/Tf%E2%80%93idf</media:description>
+   <media:community>
+    <media:starRating count="428" average="5.00" min="1" max="5"/>
+    <media:statistics views="15689"/>
+   </media:community>
+  </media:group>
+ </entry>
+ <entry>
+  <id>yt:video:TS0C_pt08Go</id>
+  <yt:videoId>TS0C_pt08Go</yt:videoId>
+  <yt:channelId>UCrqM0Ym_NbK1fqeQG2VIohg</yt:channelId>
+  <title>Coding in Go while Google is Spying on Me</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=TS0C_pt08Go"/>
+  <author>
+   <name>Tsoding Daily</name>
+   <uri>https://www.youtube.com/channel/UCrqM0Ym_NbK1fqeQG2VIohg</uri>
+  </author>
+  <published>2023-03-23T15:02:45+00:00</published>
+  <updated>2023-03-23T16:46:38+00:00</updated>
+  <media:group>
+   <media:title>Coding in Go while Google is Spying on Me</media:title>
+   <media:content url="https://www.youtube.com/v/TS0C_pt08Go?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i1.ytimg.com/vi/TS0C_pt08Go/hqdefault.jpg" width="480" height="360"/>
+   <media:description>Chapters:
+- 00:00:00 - 1. Intro
+- 00:00:58 - 1.2. Gatekeeper, Gaslighter and Girlbosser
+- 00:03:57 - 1.3. Telemetry in Go
+- 00:05:46 - 1.4. Alternative to Go
+- 00:08:12 - 1.5. Gateleeper Commands
+- 00:11:54 - 1.6. Static vs Dynamic Commands Problem
+- 00:15:01 - 1.7. Custom Scripting Language Bex
+- 00:26:09 - 2. Running Bex Scripts
+- 00:28:02 - 2.1. Evaluation Model
+- 00:34:59 - 2.2. Weather Bex script
+- 00:37:01 - 2.3. Parsing Bex
+- 00:41:45 - 2.4. Dumping Bex AST
+- 00:51:49 - 3. Integrating Bex with Gatekeeper
+- 00:53:34 - 3.1. Panics and Exhaustive Switch-Cases
+- 01:05:09 - 3.2. EvalContext for Commands
+- 01:11:22 - 3.3. Evaluating Bex on Command
+- 01:25:37 - 3.4. Populating the Scope
+- 01:32:48 - 3.5. Checking out latest TIOBE Index
+- 01:34:34 - 3.6. `say()` function
+- 01:43:39 - 3.7. `author` variable
+- 01:45:58 - 3.8. Commands Transition Plan
+- 01:47:31 - 3.9. Database Migration
+- 01:49:51 - 3.10. Old Debian Stable
+- 01:52:46 - 3.11. Creating Table for Commands
+- 02:00:00 - 3.12. Querying Commands from Database
+- 02:03:45 - 3.13. On SQL Injections
+- 02:06:54 - 3.14. Retrieving Commands from Database
+- 02:09:50 - 3.15. Evaluating Commands from Database
+- 02:12:14 - 3.16. Investigating Syntax Error
+- 02:16:44 - 3.17. Extending Syntax of Bex
+- 02:19:00 - 3.18. Testing the Commands from Database
+- 02:21:44 - 3.19. Trying to implement !vanish
+- 02:29:47 - 4. QnA
+- 02:31:00 - 5. Outro
+- 02:31:14 - 6. Smooch
+
+References:
+- Source Code: https://github.com/tsoding/gatekeeper
+- telemetry in the Go toolchain: https://github.com/golang/go/discussions/58409
+- Bex: https://gitlab.com/tsoding/bex</media:description>
+   <media:community>
+    <media:starRating count="394" average="5.00" min="1" max="5"/>
+    <media:statistics views="17126"/>
+   </media:community>
+  </media:group>
+ </entry>
+ <entry>
+  <id>yt:video:M-sIyi9VMSU</id>
+  <yt:videoId>M-sIyi9VMSU</yt:videoId>
+  <yt:channelId>UCrqM0Ym_NbK1fqeQG2VIohg</yt:channelId>
+  <title>3D ASCII with Colors</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=M-sIyi9VMSU"/>
+  <author>
+   <name>Tsoding Daily</name>
+   <uri>https://www.youtube.com/channel/UCrqM0Ym_NbK1fqeQG2VIohg</uri>
+  </author>
+  <published>2023-03-21T15:12:54+00:00</published>
+  <updated>2023-03-21T18:16:59+00:00</updated>
+  <media:group>
+   <media:title>3D ASCII with Colors</media:title>
+   <media:content url="https://www.youtube.com/v/M-sIyi9VMSU?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i2.ytimg.com/vi/M-sIyi9VMSU/hqdefault.jpg" width="480" height="360"/>
+   <media:description>Chapters:
+- 00:00:00 - 1. Day One
+- 00:01:45 - 1.1. How to do colors in ANSI Terminal
+- 00:07:47 - 1.2. 256 Colors
+- 00:12:22 - 1.3. Trying RGB support
+- 00:19:31 - 1.4. Reverse RGB table
+- 00:30:36 - 1.5. Porting the results back to Demo
+- 00:36:51 - 1.6. Investigating potential overflow bug
+- 00:42:19 - 1.7. Leaving the bug for the next day
+- 00:45:19 - 2. Day Two
+- 00:48:03 - 2.1. Hypothesis on the Cause of the Bug
+- 00:51:33 - 2.2. HSL Color Space
+- 00:54:18 - 2.3. Preparing the HSL Table
+- 00:58:44 - 2.4. Where to Learn Regular Expressions
+- 01:02:38 - 2.5. find_ansi_index_by_hsl()
+- 01:04:57 - 2.6. rgb_to_hsl()
+- 01:14:25 - 2.7. Verifying HSL values
+- 01:23:31 - 2.8. img2term
+- 01:26:07 - 2.8.1. Octals Bug
+- 01:29:37 - 2.8.2. Loading an Image
+- 01:31:07 - 2.8.3. Rendering the Image
+- 01:37:07 - 2.8.4. Handling Alpha Channel
+- 01:40:56 - 2.8.5. Wrong Colors Bug
+- 01:44:07 - 2.8.6. Scaling Down the Images
+- 01:57:17 - 2.8.7. Parsing Command Arguments
+- 02:04:13 - 2.8.8. Fixing the HSL Table
+- 02:06:39 - 2.8.9. Picking the Name
+- 02:08:00 - 2.8.10. Creating the Repo
+- 02:15:20 - 2.9. Porting img2term Rendering to Demo
+- 02:18:47 - 2.10. The Problem was not the Color Space
+- 02:28:00 - 2.11. Dumping the First Frame of Demo
+- 02:32:06 - 2.12. Fixing the signed char bug
+- 02:34:20 - 2.13. FINAL RESULT
+- 02:39:43 - 2.14. Outro
+
+References:
+- Color ANSI codes in C: https://gist.github.com/RabaDabaDoba/145049536f815903c79944599c6f952a
+- 256 Colors Cheat Sheet: https://www.ditig.com/256-colors-cheat-sheet
+- https://regex101.com/
+- https://www.amazon.com/Mastering-Regular-Expressions-Jeffrey-Friedl/dp/0596528124
+- https://github.com/tsoding/img2term</media:description>
+   <media:community>
+    <media:starRating count="385" average="5.00" min="1" max="5"/>
+    <media:statistics views="10921"/>
+   </media:community>
+  </media:group>
+ </entry>
+ <entry>
+  <id>yt:video:V-o1cKaWOQc</id>
+  <yt:videoId>V-o1cKaWOQc</yt:videoId>
+  <yt:channelId>UCrqM0Ym_NbK1fqeQG2VIohg</yt:channelId>
+  <title>My Text Editor is Getting Too Powerful</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=V-o1cKaWOQc"/>
+  <author>
+   <name>Tsoding Daily</name>
+   <uri>https://www.youtube.com/channel/UCrqM0Ym_NbK1fqeQG2VIohg</uri>
+  </author>
+  <published>2023-03-16T18:09:37+00:00</published>
+  <updated>2023-04-15T19:20:35+00:00</updated>
+  <media:group>
+   <media:title>My Text Editor is Getting Too Powerful</media:title>
+   <media:content url="https://www.youtube.com/v/V-o1cKaWOQc?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i3.ytimg.com/vi/V-o1cKaWOQc/hqdefault.jpg" width="480" height="360"/>
+   <media:description>Chapters:
+- 00:00:00 - 1. Intro
+- 00:01:30 - 1.1. Demo
+- 00:03:21 - 1.2. Plans for today
+- 00:04:30 - 2. Let's a go!
+- 00:05:01 - 3. On the purpose of TAB for Programmers
+- 00:08:12 - 4. Handling Ctrl+F
+- 00:10:08 - 5. OOP in C
+- 00:10:45 - 6. #JustASyntax
+- 00:14:44 - 7. On AI manipulating Humans
+- 00:22:13 - 8. ChatGPT is just a compression algorithm
+- 00:30:13 - 9. Introducing Search Buffer
+- 00:35:26 - 10. Reopening Twitch chat
+- 00:37:50 - 11. Stoping the search and reseting the buffer
+- 00:41:35 - 12. Jumping to the next match 
+- 00:46:47 - 13. Why do I put terminal window behind my camera
+- 00:49:14 - 14. Alternative Frontends for popular YouTube and Twitch
+- 00:50:37 - 15. Go and Telemetry
+- 00:52:30 - 16. On Superiority of Imperative Programming
+- 00:57:05 - 17. Highlighting the Search Matches
+- 00:58:12 - 18. Q: Can my Chair code?
+- 00:59:36 - 19. Q: Which keyboard layout I use?
+- 01:00:24 - 20. Q: Do I still do music?
+- 01:01:20 - 21. Q: Do I do my own art?
+- 01:01:36 - 22. Q: What is advantage of continuos buffer?
+- 01:03:55 - 23. How to Start Programming
+- 01:06:41 - 24. ChatGPT lies
+- 01:10:26 - 25. Aren't AI and ML basically Mathematical Modeling?
+- 01:13:58 - 26. Back to highlighting the search matches
+- 01:24:44 - 27. Visual Explanation of Highlighting Algorithm
+- 01:27:05 - 28. Continue with highlighting
+- 01:29:32 - 29. `using` keyword in Jai
+- 01:31:01 - 30. Continue highlighting
+- 01:31:57 - 31. variadics in Jai
+- 01:33:47 - 32. Continue highlighting
+- 01:36:35 - 33. Limiting navigation in search mode
+- 01:42:52 - 34. Locking search buffer
+- 01:45:23 - 35. Jumping to next match
+- 01:45:43 - 36. Asking Questions on Stream
+- 01:47:37 - 37. How I learnt things
+- 01:48:22 - 38. Q: Are multitaped Turing Machines better?
+- 01:48:57 - 39. Q: cats or dogs?
+- 01:49:51 - 40. Back to jumping to next match
+- 01:53:23 - 41. Stop the search on Enter
+- 01:54:59 - 42. Committing to GitHub Repo
+- 01:55:42 - 43. QnA
+- 01:56:17 - 43.1. Q: On the font size in the Text Editor
+- 01:57:32 - 43.2. Q: Do I intent to daily-drive Ded?
+- 01:59:14 - 43.3. Q: How do I use C when I have Jai?
+- 02:00:24 - 43.4. Q: Will Jai be self-hosted?
+- 02:01:40 - 44. Outro
+- 02:02:03 - 45. Smooch
+
+References:
+- Source Code: https://github.com/tsoding/ded</media:description>
+   <media:community>
+    <media:starRating count="639" average="5.00" min="1" max="5"/>
+    <media:statistics views="26276"/>
+   </media:community>
+  </media:group>
+ </entry>
+ <entry>
+  <id>yt:video:37dKzbyb6i0</id>
+  <yt:videoId>37dKzbyb6i0</yt:videoId>
+  <yt:channelId>UCrqM0Ym_NbK1fqeQG2VIohg</yt:channelId>
+  <title>On AI manipulating Humans</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=37dKzbyb6i0"/>
+  <author>
+   <name>Tsoding Daily</name>
+   <uri>https://www.youtube.com/channel/UCrqM0Ym_NbK1fqeQG2VIohg</uri>
+  </author>
+  <published>2023-03-16T16:03:03+00:00</published>
+  <updated>2023-03-16T16:03:04+00:00</updated>
+  <media:group>
+   <media:title>On AI manipulating Humans</media:title>
+   <media:content url="https://www.youtube.com/v/37dKzbyb6i0?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i4.ytimg.com/vi/37dKzbyb6i0/hqdefault.jpg" width="480" height="360"/>
+   <media:description>From a Livestream on  https://www.twitch.tv/tsoding</media:description>
+   <media:community>
+    <media:starRating count="408" average="5.00" min="1" max="5"/>
+    <media:statistics views="6652"/>
+   </media:community>
+  </media:group>
+ </entry>
+ <entry>
+  <id>yt:video:ldefArsm3x0</id>
+  <yt:videoId>ldefArsm3x0</yt:videoId>
+  <yt:channelId>UCrqM0Ym_NbK1fqeQG2VIohg</yt:channelId>
+  <title>C is Just Better than Bash</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=ldefArsm3x0"/>
+  <author>
+   <name>Tsoding Daily</name>
+   <uri>https://www.youtube.com/channel/UCrqM0Ym_NbK1fqeQG2VIohg</uri>
+  </author>
+  <published>2023-03-15T16:10:42+00:00</published>
+  <updated>2023-03-15T17:21:41+00:00</updated>
+  <media:group>
+   <media:title>C is Just Better than Bash</media:title>
+   <media:content url="https://www.youtube.com/v/ldefArsm3x0?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i1.ytimg.com/vi/ldefArsm3x0/hqdefault.jpg" width="480" height="360"/>
+   <media:description>Chapters:
+- 00:00:00 - 1. Intro
+- 00:01:27 - 1.1. Recap
+- 00:04:25 - 1.2. Build process
+- 00:07:49 - 1.3. nobuild.c
+- 00:10:55 - 2. build.sh → nobuild.c
+- 00:12:40 - 2.1. GO_REBUILD_URSELF
+- 00:14:42 - 2.2. Running External Programs
+- 00:20:46 - 2.3. build_tools
+- 00:26:18 - 2.4. Webpack vs Turbopack vs Vite
+- 00:29:09 - 2.5. build_assets
+- 00:33:24 - 2.6. build_tests
+- 00:35:42 - 2.7. build_all_vc_demos + build_vc_demo
+- 00:40:26 - 2.8.1. build_wasm_demo
+- 00:46:37 - 2.8.2. build_term_demo
+- 00:48:09 - 2.8.3. build_sdl_demo
+- 00:50:19 - 2.9. Parallel Builds
+- 00:52:19 - 3. Subcommands
+- 01:03:54 - 4. Pushing to GitHub
+- 01:07:15 - No smooch today 'cause y'all've been naughty lately.
+
+References:
+- Source Code: https://github.com/tsoding/olive.c
+- Nobuild: https://github.com/tsoding/nobuild
+- Why I enable -fno-builtin flag for WASM: https://www.youtube.com/watch?v=juWM6saNCZk</media:description>
+   <media:community>
+    <media:starRating count="647" average="5.00" min="1" max="5"/>
+    <media:statistics views="21524"/>
+   </media:community>
+  </media:group>
+ </entry>
+ <entry>
+  <id>yt:video:tm60fuF5v54</id>
+  <yt:videoId>tm60fuF5v54</yt:videoId>
+  <yt:channelId>UCrqM0Ym_NbK1fqeQG2VIohg</yt:channelId>
+  <title>File Diff in Python From Scratch</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=tm60fuF5v54"/>
+  <author>
+   <name>Tsoding Daily</name>
+   <uri>https://www.youtube.com/channel/UCrqM0Ym_NbK1fqeQG2VIohg</uri>
+  </author>
+  <published>2023-03-14T17:08:42+00:00</published>
+  <updated>2023-03-14T20:45:26+00:00</updated>
+  <media:group>
+   <media:title>File Diff in Python From Scratch</media:title>
+   <media:content url="https://www.youtube.com/v/tm60fuF5v54?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i1.ytimg.com/vi/tm60fuF5v54/hqdefault.jpg" width="480" height="360"/>
+   <media:description>Chapters:
+- 00:00:00 - 1. Intro
+- 00:06:07 - 2. Implementing Diff
+- 00:10:04 - 2.1. Parsing Command Line Arguments
+- 00:14:07 - 2.2. Reading Files
+- 00:20:04 - 2.3. Running Levenshtein Algorithm on the Files
+- 00:22:13 - 2.3.1. Edit Graph Representation
+- 00:28:35 - 2.3.2. Levenshtein Algorithm in Bioinformatics
+- 00:30:11 - 2.3.3. Populating the Edit Graph
+- 00:47:05 - 2.3.4. Recovering the Edit Script
+- 00:55:44 - 2.4. Custom Diff Format
+- 00:57:37 - 3. Implementing Patch
+- 00:58:55 - 3.1. GitHub Repo
+- 01:00:53 - 3.2. Subcommands
+- 01:11:19 - 3.3. Levenshtein for Subcommand Names
+- 01:12:59 - 3.4. Factoring out Levenshtein Algorithm
+- 01:14:54 - 3.5. Global List of Subcommands
+- 01:22:48 - 3.6. Falling into OOP trap
+- 01:25:50 - 3.7. Pretty-Printing the Usage
+- 01:29:10 - 3.8. Help Subcommand
+- 01:29:33 - 3.8.1. Python scoping
+- 01:32:27 - 3.8.2. Static type checking for Python
+- 01:38:48 - 3.9. Detecting typos in subcommand names
+- 01:49:22 - 3.10. Python `self` binding problem
+- 01:52:36 - 3.11. Implementing the Patch Subcommand
+- 01:54:13 - 3.11.1 Parsing the Patch
+- 02:07:21 - 3.11.2 Applying the patch
+- 02:21:54 - 4. QnA
+- 02:24:34 - 5. Outro
+- 02:24:46 - 6. Smooch
+
+References:
+- https://en.wikipedia.org/wiki/Levenshtein_distance
+- Previous stream link: https://www.youtube.com/watch?v=tG4IeY01-xw
+- https://gist.github.com/rexim/2bd6b1b6c3de95a3cf6d00b172ca98bb
+- Source Code: https://github.com/tsoding/piff
+- https://www.nathaniel.ai/myers-diff/</media:description>
+   <media:community>
+    <media:starRating count="340" average="5.00" min="1" max="5"/>
+    <media:statistics views="12314"/>
+   </media:community>
+  </media:group>
+ </entry>
+ <entry>
+  <id>yt:video:IM8oA0yPq5k</id>
+  <yt:videoId>IM8oA0yPq5k</yt:videoId>
+  <yt:channelId>UCrqM0Ym_NbK1fqeQG2VIohg</yt:channelId>
+  <title>I just wanted a Simple 2D Library in C but made This Instead... Oops...</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=IM8oA0yPq5k"/>
+  <author>
+   <name>Tsoding Daily</name>
+   <uri>https://www.youtube.com/channel/UCrqM0Ym_NbK1fqeQG2VIohg</uri>
+  </author>
+  <published>2023-03-08T18:06:12+00:00</published>
+  <updated>2023-03-08T21:14:24+00:00</updated>
+  <media:group>
+   <media:title>I just wanted a Simple 2D Library in C but made This Instead... Oops...</media:title>
+   <media:content url="https://www.youtube.com/v/IM8oA0yPq5k?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i2.ytimg.com/vi/IM8oA0yPq5k/hqdefault.jpg" width="480" height="360"/>
+   <media:description>Chapters:
+- 00:00:00 - 1. Intro
+- 00:00:49 - 1.1. Recap
+- 00:03:00 - 1.2. Plans for today
+- 00:03:22 - 2. Low-Poly Version of a Teacup by Kolumb
+- 00:07:13 - 3. Color Overflow Bug
+- 00:15:58 - 3.1. Rendering Triangles with Barycentric Coordinates
+- 00:21:20 - 3.2. Implementing the Barycentric Rendering
+- 00:36:32 - 3.3. Purely integer solution
+- 00:41:39 - 3.4. Fixing the color overflow bug
+- 00:48:53 - 3.5. Fixing boundaries bug
+- 00:59:12 - 3.6. Applying the new rendering approach to Utah Teapot
+- 01:14:57 - 4. Animated 3D Model Demo
+- 01:18:05 - 4.1. Baking 3D model into the executable
+- 01:38:08 - 4.2. Rendering the model
+- 01:53:01 - 4.3. Making the model rotate
+- 02:11:44 - 4.4. Compiling to WebAssembly and Terminal Platforms
+- 02:15:44 - 5. QnA
+- 02:17:27 - 6. Outro
+- 02:18:41 - 7. Smooch
+
+References:
+- Source Code: https://github.com/tsoding/olive.c
+- https://fgiesen.wordpress.com/2011/07/09/a-trip-through-the-graphics-pipeline-2011-index/</media:description>
+   <media:community>
+    <media:starRating count="276" average="5.00" min="1" max="5"/>
+    <media:statistics views="10350"/>
+   </media:community>
+  </media:group>
+ </entry>
+ <entry>
+  <id>yt:video:tG4IeY01-xw</id>
+  <yt:videoId>tG4IeY01-xw</yt:videoId>
+  <yt:channelId>UCrqM0Ym_NbK1fqeQG2VIohg</yt:channelId>
+  <title>String Diff in Python</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=tG4IeY01-xw"/>
+  <author>
+   <name>Tsoding Daily</name>
+   <uri>https://www.youtube.com/channel/UCrqM0Ym_NbK1fqeQG2VIohg</uri>
+  </author>
+  <published>2023-03-07T17:48:26+00:00</published>
+  <updated>2023-04-07T03:26:46+00:00</updated>
+  <media:group>
+   <media:title>String Diff in Python</media:title>
+   <media:content url="https://www.youtube.com/v/tG4IeY01-xw?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i1.ytimg.com/vi/tG4IeY01-xw/hqdefault.jpg" width="480" height="360"/>
+   <media:description>Chapters:
+- 00:00:00 - 1. Intro
+- 00:01:44 - 1.1. Levenshtein Distance
+- 00:05:02 - 2. Recursive Algorithm
+- 00:07:27 - 2.1. Base Cases
+- 00:11:20 - 2.2. Recursive Cases
+- 00:19:49 - 2.3. Bug
+- 00:23:06 - 2.4. Performance problem
+- 00:23:57 - 3. Python Memoization
+- 00:27:35 - 4. Custom Cache Memoization
+- 00:28:21 - 4.1. Passing the lengths of the strings along with the strings
+- 00:35:17 - 4.2. 2D Table Cache
+- 00:36:07 - 4.3. Constructing 2D Table in Python
+- 00:38:41 - 4.4. Extra row and column in the table
+- 00:40:17 - 4.5. Integrating the table with the algorithm
+- 00:43:34 - 5. Recovering the Reference Implementation
+- 00:46:17 - 6. How the cache changes over time?
+- 00:46:50 - 6.1. Python Pretty-Print
+- 00:49:00 - 6.2. Custom Pretty-Print
+- 00:52:21 - 6.3. Cache is not visited fully
+- 00:55:34 - 7. Non-Recursive Algorithm
+- 01:09:02 - 8. Dynamic Programming
+- 01:14:14 - 9. Computing the Sequence of Actions
+- 01:15:26 - 9.1. Table of Actions
+- 01:27:10 - 9.2. Back tracing
+- 01:32:39 - 9.3. Implementation
+- 01:36:43 - 9.4. Making sense of the back trace
+- 01:47:24 - 9.5. Reporting specific characters in the back trace
+- 01:53:31 - 10. QnA
+- 01:55:09 - 11. Outro
+- 01:55:21 - 12. Smooch
+
+
+References:
+- https://en.wikipedia.org/wiki/Levenshtein_distance
+- Source Code: https://gist.github.com/rexim/2bd6b1b6c3de95a3cf6d00b172ca98bb</media:description>
+   <media:community>
+    <media:starRating count="365" average="5.00" min="1" max="5"/>
+    <media:statistics views="10424"/>
+   </media:community>
+  </media:group>
+ </entry>
+</feed>
