@@ -5,13 +5,17 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
+	"net/http"
 	_ "net/http"
 	"os"
+	"regexp"
+	"strings"
 	"time"
 )
 
 const (
-	ytUrlBase string = "https://www.channel.com/feeds/videos.xml?channel_id="
+	feedURL string = "https://www.youtube.com/feeds/videos.xml?channel_id="
+	channelURL string = "https://www.youtube.com/@"
 	followJsonFilePath = "follow.json"
 )
 
@@ -57,24 +61,24 @@ func (c channel) String() string {
 	return str
 }
 
-func parseFeed(channelId string) (*channel, channelName,error) {
+func parseFeed(channelFeedURL string) (*channel, channelName,error) {
 
 
-// 	resp, err := http.Get(ytUrlBase+channelId)
-// 	if err != nil {
-// 		return nil,channelName(""), err
-// 	}
+	resp, err := http.Get(channelFeedURL)
+	if err != nil {
+		return nil,channelName(""), err
+	}
 
-	// bodyBytes, err := io.ReadAll(resp.Body)
-// 	if err != nil {
-// 		return nil, channelName(""),err
-// 	}
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, channelName(""),err
+	}
 
-	// for dev purpose, so no handling error v
-	f, _ := os.Open("test.xml")
-	defer f.Close()
-	bodyBytes, _ := io.ReadAll(f)
-	// for dev purpose, so no handling error ^
+// 	// for dev purpose, so no handling error v
+// 	f, _ := os.Open("test.xml")
+// 	defer f.Close()
+// 	bodyBytes, _ := io.ReadAll(f)
+// 	// for dev purpose, so no handling error ^
 
 	var yt channel
 	if err := xml.Unmarshal(bodyBytes, &yt); err != nil {
@@ -85,8 +89,8 @@ func parseFeed(channelId string) (*channel, channelName,error) {
 		if name == channelName("") {
 			name = channelName(yt.Title)
 		}
-		yt.Videos[i].VideoId = fmt.Sprintf("https://www.channel.com/watch?v=%v", video.VideoId)
-		yt.Videos[i].ChannelId = fmt.Sprintf(ytUrlBase+video.ChannelId)
+		yt.Videos[i].VideoId = fmt.Sprintf("https://www.youtube.com/watch?v=%v", video.VideoId)
+		yt.Videos[i].ChannelId = channelFeedURL
 	}
 	
 	return &yt, name,nil
@@ -135,18 +139,41 @@ func parseJson() (map[channelName][]*channel, error) {
 // TODO: refactor
 
 func main(){
-	fmt.Println(parseJson())
+	chanName := "Tsoding Daily"
+	uniformChanName := strings.ToLower(strings.ReplaceAll(chanName, " ", ""))
+	resp, err := http.Get(channelURL+uniformChanName)
+	if err != nil {
+		warn("Failed to get channel info")
+		return
+	}
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		warn("Failed to read response body")
+		return
+	}
+
+// 	fmt.Println(string(bodyBytes))
+
+	idRegexp := "\\w{8}_\\w{15}"
+	re := regexp.MustCompile(strings.ReplaceAll(feedURL,"?", "\\?")+idRegexp)
+	feedURLBytes := re.Find(bodyBytes)
 	
-// 	yt, name,_ := parseFeed("")
-// 	fmt.Printf("%+v\n", *yt)
-// 	
-// 	var yts []*channel
-// 	yts = append(yts, yt)
-// 	
-// 	follow := make(map[channelName][]*channel)
-// 	follow[name] = yts
-// 	
-// 	writeJson(follow)
+// 	reId := regexp.MustCompile(idRegexp)
+// 	fmt.Println(string(reId.Find(feedURLBytes)))
+
+//	fmt.Println(parseJson())
+	
+	yt, name,_ := parseFeed(string(feedURLBytes))
+	fmt.Printf("%+v\n", *yt)
+	
+	var yts []*channel
+	yts = append(yts, yt)
+	
+	follow := make(map[channelName][]*channel)
+	follow[name] = yts
+	
+	writeJson(follow)
 }
 
 
