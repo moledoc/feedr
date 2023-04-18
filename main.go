@@ -1,23 +1,28 @@
 package main
 
 import (
+	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"io"
-	"os"
-	"encoding/xml"
-	"encoding/json"
-	"time"
 	_ "net/http"
+	"os"
+	"time"
 )
 
 const (
 	ytUrlBase string = "https://www.channel.com/feeds/videos.xml?channel_id="
+	followJsonFilePath = "follow.json"
 )
 
 type channelName string
 
 func warn(format string, v ...interface{}) (int, error) {
 	return fmt.Fprintf(os.Stdout, "[WARN]: " + format, v...)
+}
+
+func info(format string, v ...interface{}) (int, error) {
+	return fmt.Fprintf(os.Stdout, "[INFO]: " + format, v...)
 }
 
 type video struct {
@@ -29,7 +34,6 @@ type video struct {
 }
 
 func (e video) String() string {
-	//return fmt.Sprintf("Title: %v\nURL: https://www.channel.com/watch?v=%v\nLink: \n", e.Title, e.VideoId)
 	return fmt.Sprintf("%-10v %v\n%-10v %v\n%-10v %v\n%-10v %v\n%-10v %v\n", 
 		"ChannelId:", e.ChannelId,
 		"Title:", e.Title, 
@@ -46,7 +50,6 @@ type channel struct {
 
 func (c channel) String() string {
 	var str string
-	//str = fmt.Sprintf("Title: %v\n\n", c.Title)
 	for _, video := range c.Videos {
 		str += fmt.Sprintf("%-10v %v\n", "Channel:", c.Title)
 		str += video.String() + "------------------------\n"
@@ -89,38 +92,61 @@ func parseFeed(channelId string) (*channel, channelName,error) {
 	return &yt, name,nil
 }
 
-func write(yts map[channelName][]*channel) {
+func writeJson(yts map[channelName][]*channel) {
 	jsonBytes, err := json.Marshal(yts)
 	if err != nil {
-		warn("Failed to write channels because of: %v", err)
+		warn("Failed to marshal data: %v\n", err)
+		return
 	}
-	// TODO: write json file
-	fmt.Println(string(jsonBytes),err)
-	
-	var tmp map[channelName][]*channel
-	json.Unmarshal(jsonBytes, &tmp)
-	fmt.Println(tmp)
+	f, err := os.OpenFile(followJsonFilePath, os.O_CREATE |  os.O_APPEND | os.O_WRONLY, 0755)
+	if err != nil {
+		warn("Failed to open file because of: %v\n", err)
+		return
+	}
+	defer f.Close()
+	n, err := io.WriteString(f,string(jsonBytes))
+	if err != nil {
+		warn("Failed to write follow data because of: %v\n", err)
+	}
+	info("Wrote %v bytes to json", n)
 }
 
-// TODO: read existing json
+func parseJson() (map[channelName][]*channel, error) {
+	var yts map[channelName][]*channel
+	f, err := os.Open(followJsonFilePath)
+	if err != nil {
+		return yts, err
+	}
+	defer f.Close()
+	jsonBytes, err := io.ReadAll(f)
+	if err != nil {
+		return yts, err
+	}
+	err = json.Unmarshal(jsonBytes, &yts)
+	return yts, err
+}
+
+
 // TODO: compare new entries with existing
 // TODO: handle new channel ids
 // TODO: handle existing channel ids
 // TODO: user interface
 // TODO: periodic grab new data (perhaps could be delegated to cron instead)
+// TODO: refactor
 
 func main(){
-	yt, name,_ := parseFeed("")
-	fmt.Printf("%+v\n", *yt)
+	fmt.Println(parseJson())
 	
-	var yts []*channel
-	yts = append(yts, yt)
-	
-	follow := make(map[channelName][]*channel)
-	follow[name] = yts
-	
-	write(follow)
-
+// 	yt, name,_ := parseFeed("")
+// 	fmt.Printf("%+v\n", *yt)
+// 	
+// 	var yts []*channel
+// 	yts = append(yts, yt)
+// 	
+// 	follow := make(map[channelName][]*channel)
+// 	follow[name] = yts
+// 	
+// 	writeJson(follow)
 }
 
 
