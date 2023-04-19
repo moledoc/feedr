@@ -104,7 +104,7 @@ func writeJson(yts map[channelName][]*channel) {
 		warn("Failed to marshal data: %v\n", err)
 		return
 	}
-	f, err := os.OpenFile(followJsonFilePath, os.O_CREATE |  os.O_APPEND | os.O_WRONLY, 0755)
+	f, err := os.OpenFile(followJsonFilePath, os.O_CREATE |  os.O_TRUNC | os.O_WRONLY, 0755)
 	if err != nil {
 		warn("Failed to open file because of: %v\n", err)
 		return
@@ -175,7 +175,7 @@ func querySearch(chanName string) (string, error) {
 // TODO: refactor
 
 func main(){
-	chanName := "tsodin dai"
+	chanName := "tsodingdaily"
 	uniformChanName := strings.ToLower(strings.ReplaceAll(chanName, " ", ""))
 	resp, err := http.Get(channelURL+uniformChanName)
 	if err != nil  || resp.Body == nil {
@@ -204,10 +204,10 @@ func main(){
 // 	reId := regexp.MustCompile(idRegexp)
 // 	fmt.Println(string(reId.Find(feedURLBytes)))
 
-//	fmt.Println(parseJson())
+	existingFeed, _ := parseJson()
 	
 	yt, name,_ := parseFeed(string(feedURLBytes))
-	fmt.Printf("%+v\n", *yt)
+	//fmt.Printf("%+v\n", *yt)
 	
 	var yts []*channel
 	yts = append(yts, yt)
@@ -215,7 +215,32 @@ func main(){
 	follow := make(map[channelName][]*channel)
 	follow[name] = yts
 	
-	writeJson(follow)
+	// compare new feed with existing
+	diff := make(map[channelName][]*channel)
+	for cName, feed := range follow {
+		tmpExist, ok := existingFeed[cName]
+		if !ok {
+			diff[cName] = feed
+			continue
+		}
+		var cFeed []*channel
+		for _, vid := range feed {
+			vidFound := true
+			for _, existVid := range tmpExist {
+				if existVid == vid {
+					vidFound = false
+					break
+				}
+			}
+			if vidFound {
+				cFeed = append(cFeed, vid)
+			}
+		}
+		diff[cName] = cFeed
+		existingFeed[cName].Videos = append(existingFeed[cName].Videos, cFeed.Videos...)
+	}
+	fmt.Printf("%+v\n", *yt)
+	writeJson(existingFeed)
 }
 
 
