@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
@@ -16,6 +17,7 @@ import (
 const (
 	feedURL string = "https://www.youtube.com/feeds/videos.xml?channel_id="
 	channelURL string = "https://www.youtube.com/@"
+	querySearchURL string = "https://www.youtube.com/results?search_query="
 	followJsonFilePath = "follow.json"
 )
 
@@ -62,15 +64,15 @@ func (c channel) String() string {
 }
 
 func parseFeed(channelFeedURL string) (*channel, channelName,error) {
-
-
 	resp, err := http.Get(channelFeedURL)
 	if err != nil {
+		warn("failed to send a get request: %v", err)
 		return nil,channelName(""), err
 	}
 
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
+		warn("failed to parse response body: %v", err)
 		return nil, channelName(""),err
 	}
 
@@ -130,6 +132,40 @@ func parseJson() (map[channelName][]*channel, error) {
 	return yts, err
 }
 
+func querySearch(chanName string) (string, error) {
+	uniformChanName := strings.ReplaceAll(strings.ToLower(chanName), " ", "\\w*")
+	resp, err := http.Get(querySearchURL+uniformChanName)
+	if err != nil {
+		warn("wasn't able to search %v: %v", querySearchURL+chanName, err)
+		return "", err
+	}
+	respBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		warn("wasn't able to parse response from %v: %v", querySearchURL+chanName, err)
+		return "", err
+	}
+	
+	re := regexp.MustCompile(fmt.Sprintf("/@\\w*%v\\w*\"", uniformChanName))
+// 	foundThese := re.Find(bytes.ToLower(respBytes))
+	indices := re.FindAllIndex(bytes.ToLower(respBytes),-1)
+	fmt.Println("\n indices: ", string(respBytes[indices[0][0]:indices[0][1]]))
+
+	foundTheseBytesMap := make(map[string]struct{})
+	for _, index := range indices {
+		elem := string(respBytes[index[0]:index[1]])
+		_, ok := foundTheseBytesMap[elem]
+		if !ok {
+			foundTheseBytesMap[elem] = struct{}{}
+		}
+	}
+	var foundThese []string
+	for k, _ := range foundTheseBytesMap {
+		foundThese = append(foundThese, k[2:]) // index from 2, because want to drop '/@'
+	}
+	fmt.Println("\nFound these: ", foundThese)
+	return "", err
+}
+	
 
 // TODO: compare new entries with existing
 // TODO: handle new channel ids
@@ -139,10 +175,10 @@ func parseJson() (map[channelName][]*channel, error) {
 // TODO: refactor
 
 func main(){
-	chanName := "Tsoding Daily"
+	chanName := "tsodin dai"
 	uniformChanName := strings.ToLower(strings.ReplaceAll(chanName, " ", ""))
 	resp, err := http.Get(channelURL+uniformChanName)
-	if err != nil {
+	if err != nil  || resp.Body == nil {
 		warn("Failed to get channel info")
 		return
 	}
@@ -158,6 +194,12 @@ func main(){
 	idRegexp := "\\w{8}_\\w{15}"
 	re := regexp.MustCompile(strings.ReplaceAll(feedURL,"?", "\\?")+idRegexp)
 	feedURLBytes := re.Find(bodyBytes)
+	
+	if len(feedURLBytes) == 0 {
+		warn("didn't find channel called '%v'", chanName)
+		querySearch(chanName)
+		return
+	}
 	
 // 	reId := regexp.MustCompile(idRegexp)
 // 	fmt.Println(string(reId.Find(feedURLBytes)))
