@@ -1,3 +1,3 @@
-module github.com/moledoc/feedr
+module github.com/moledoc/ytf
 
-go 1.19
+go 1.22
