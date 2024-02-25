@@ -54,7 +54,7 @@ type channel struct {
 }
 
 const (
-	listenersSize             = 7
+	listenersSize             = 8
 	maxFeedSize               = 7
 	channelURLBase     string = "https://www.youtube.com/@"
 	feedURLBase        string = "https://www.youtube.com/feeds/videos.xml?channel_id="
@@ -530,6 +530,30 @@ func handleHealth(l net.Listener) {
 	}
 }
 
+func handleSubs(l net.Listener) {
+	for {
+		conn, err := l.Accept()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "[ERROR]: 'subs' handler failed to accept connection\n")
+			return
+		}
+		go func(c net.Conn) {
+			defer c.Close()
+			chs, err := feed.subs()
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "[ERROR]: failed to retrieve subs: %v\n", err)
+				return
+			}
+			var response []byte
+			for _, ch := range chs {
+				response = append(response, []byte(ch.Name)...)
+				response = append(response, '\n')
+			}
+			c.Write(response)
+		}(conn)
+	}
+}
+
 // NOTE: manual creation of listeners is for practice purposes, but ideas how to compact (MAYBE: compact).
 // TODO: handle Listen/Accept failures better/ re-instate handler if it fails to accept connection
 // MAYBE: TODO: debug endpoint
@@ -630,7 +654,18 @@ func main() {
 	listeners.add(listenSearch)
 	go handleSearch(listenSearch)
 
-	// TODO: list all subs
+	sockNameSubs := "/tmp/ytfd.subs.sock"
+	if err := os.RemoveAll(sockNameSubs); err != nil {
+		fmt.Fprintf(os.Stderr, "[ERROR]: failed to remove all from 'subs' socket ('%v'): %v\n", sockNameSubs, err)
+		return
+	}
+	listenSubs, err := net.Listen("unix", sockNameSubs)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "[ERROR]: failed to listen to 'subs' socket ('%v'): %v\n", sockNameSubs, err)
+		return
+	}
+	listeners.add(listenSubs)
+	go handleSubs(listenSubs)
 
 	sockNameHealth := "/tmp/ytfd.health.sock"
 	if err := os.RemoveAll(sockNameHealth); err != nil {

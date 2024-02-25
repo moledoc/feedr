@@ -149,6 +149,43 @@ int handle_unsub(char *channel_name) {
 	return 0;
 }
 
+int handle_subs() {
+	int sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
+	if (sockfd == -1) {
+		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
+		return errno;
+	}
+	struct sockaddr_un addr;
+	memset(&addr, 0, sizeof(addr));
+	addr.sun_family = AF_UNIX;
+	strncpy(addr.sun_path, "/tmp/ytfd.subs.sock", sizeof(addr.sun_path)-1);
+
+	if (connect(sockfd, (struct sockaddr *)&addr, sizeof(addr)) == -1) {
+		close(sockfd);
+		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
+		return errno;
+	}
+
+	char buf[256];
+	int n = read(sockfd, buf, 256);
+	if (n == -1) {
+		close(sockfd);
+		fprintf(stderr, "[ERROR]: failed to read subs: %s\n", strerror(errno));
+		return errno;
+	}
+
+	if (n < 256) {
+		buf[n] = '\0';
+	}
+	printf("%s", buf);
+
+	if (close(sockfd) == -1) {
+		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
+		return errno;
+	}
+	return 0;
+}
+
 int main(int argc, char **argv) {
 
 	if (argc < 3) {
@@ -170,7 +207,7 @@ int main(int argc, char **argv) {
 	} else if (strcmp(argv[1], "fetch") == 0) {
 		printf("TODO:\n");
 	} else if (strcmp(argv[1], "subs") == 0) {
-		printf("TODO:\n");
+		return handle_subs();
 	} else {
 		// MAYBE: handle as fetch
 		fprintf(stderr, "[ERROR]: unsupported command: %s\n", argv[1]);
