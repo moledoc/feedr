@@ -383,7 +383,9 @@ func handleGet(l net.Listener) {
 			channelName = channelName[:n]
 			ch, err := feed.get(string(channelName))
 			if err != nil {
-				c.Write([]byte(err.Error()))
+				response := []byte{0}
+				response = append(response, []byte(err.Error())...)
+				c.Write(response)
 				return
 			}
 			c.Write([]byte(ch.String()))

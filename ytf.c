@@ -186,6 +186,91 @@ int handle_subs() {
 	return 0;
 }
 
+int handle_fetch(char *channel_name) {
+	int sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
+	if (sockfd == -1) {
+		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
+		return errno;
+	}
+
+	struct sockaddr_un addr_get;
+	memset(&addr_get, 0, sizeof(addr_get));
+	addr_get.sun_family = AF_UNIX;
+	strncpy(addr_get.sun_path, "/tmp/ytfd.get.sock", sizeof(addr_get.sun_path)-1);
+
+	struct sockaddr_un addr_fetch;
+	memset(&addr_fetch, 0, sizeof(addr_fetch));
+	addr_fetch.sun_family = AF_UNIX;
+	strncpy(addr_fetch.sun_path, "/tmp/ytfd.fetch.sock", sizeof(addr_fetch.sun_path)-1);
+
+	if (connect(sockfd, (struct sockaddr *)&addr_get, sizeof(addr_get)) == -1) {
+		close(sockfd);
+		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
+		return errno;
+	}
+	int n = write(sockfd, channel_name, strlen(channel_name));	
+	if (n == -1) {
+		close(sockfd);
+		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
+		return errno;
+	}
+
+	char buf[1024];
+	n = read(sockfd, buf, 1024);
+	if (n == -1) {
+		close(sockfd);
+		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
+		return errno;
+	}
+	if (n < 1024) {
+		buf[n] = '\0';
+	}
+	if (buf[0]) {
+		printf("%s", buf);
+		goto finish;
+	}
+
+	printf("[NOTE]: not subbed to channel '%s'\n", channel_name);
+	if (close(sockfd) == -1) {
+		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
+		return errno;
+	}
+	sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
+	if (sockfd == -1) {
+		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
+		return errno;
+	}
+	if (connect(sockfd, (struct sockaddr *)&addr_fetch, sizeof(addr_fetch)) == -1) {
+		close(sockfd);
+		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
+		return errno;
+	}
+	n = write(sockfd, channel_name, strlen(channel_name));
+	if (n == -1) {
+		close(sockfd);
+		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
+		return errno;
+	}
+	memset(buf, 0, sizeof(buf));
+	n = read(sockfd, buf, 1024);
+	if (n == -1) {
+		close(sockfd);
+		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
+		return errno;
+	}
+	if (n < 1024) {
+		buf[n] = '\0';
+	}
+	printf(buf);
+
+finish:
+	if (close(sockfd) == -1) {
+		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
+		return errno;
+	}
+	return 0;
+}
+
 int main(int argc, char **argv) {
 
 	if (argc < 3) {
@@ -205,7 +290,7 @@ int main(int argc, char **argv) {
 	} else if (strcmp(argv[1], "unsub") == 0) {
 		return handle_unsub(argv[2]);
 	} else if (strcmp(argv[1], "fetch") == 0) {
-		printf("TODO:\n");
+		return handle_fetch(argv[2]);
 	} else if (strcmp(argv[1], "subs") == 0) {
 		return handle_subs();
 	} else {
