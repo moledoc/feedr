@@ -159,8 +159,8 @@ func notify(chName string, vid *video) error {
 	var args []string
 	args = append(args, "-a")
 	args = append(args, "notifyVid")
-	// args = append(args, "-t")
-	// args = append(args, "10000")
+	args = append(args, "-t")
+	args = append(args, "10000")
 	args = append(args, "-u")
 	args = append(args, "low")
 	args = append(args, "-h")
@@ -306,13 +306,17 @@ func handleFetch(l net.Listener) {
 			channelURL, err := getChannelURL(channelName)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "[ERROR]: %v\n", err)
-				c.Write([]byte(err.Error()))
+				resp := []byte{0}
+				resp = append(resp, []byte(err.Error())...)
+				c.Write(resp)
 				return
 			}
 
 			channelFetched, err := fetch(channelName, channelURL)
 			if err != nil {
-				c.Write([]byte(err.Error()))
+				resp := []byte{0}
+				resp = append(resp, []byte(err.Error())...)
+				c.Write(resp)
 				return
 			}
 

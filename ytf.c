@@ -8,6 +8,8 @@
 // TODO: logging
 // TODO: better responses
 // TODO: convenience func to connect to socket. For now I'll type out manually for practice.
+// TODO: help function
+// MAYBE: TODO: testing; could have a special endpoint that swaps to "local db" instance and can run deterministic tests against that.
 
 int handle_health(char *msg) {
 	int sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
@@ -261,6 +263,10 @@ int handle_fetch(char *channel_name) {
 	if (n < 1024) {
 		buf[n] = '\0';
 	}
+	if (buf[0] == 0) {
+		fprintf(stderr, "[ERROR]: %s\n", buf+1);
+		return EINVAL;
+	}
 	printf(buf);
 
 finish:
@@ -271,9 +277,28 @@ finish:
 	return 0;
 }
 
+int help() {
+	printf("TODO:\n");
+	return 0;
+}
+
 int main(int argc, char **argv) {
 
-	if (argc < 3) {
+	if (argc == 2) {
+		if (strcmp(argv[1], "help") == 0 || strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0) {
+			return help();
+		} else if (strcmp(argv[1], "subs") == 0) {
+			return handle_subs();
+		} else {
+			// NOTE: monitor whether this makes sense
+			if (handle_fetch(argv[1]) == 0) {
+				return 0;
+			}
+			return handle_search(argv[1]);
+		}
+	}
+
+	if (argc != 3) {
 		fprintf(stderr, "[ERROR]: invalid number of arguments, expected: <action> <channel>\n");
 		return EINVAL;
 	}
@@ -289,10 +314,8 @@ int main(int argc, char **argv) {
 		return handle_search(argv[2]);
 	} else if (strcmp(argv[1], "unsub") == 0) {
 		return handle_unsub(argv[2]);
-	} else if (strcmp(argv[1], "fetch") == 0) {
+	} else if (strcmp(argv[1], "fetch") == 0 || strcmp(argv[1], "get") == 0) {
 		return handle_fetch(argv[2]);
-	} else if (strcmp(argv[1], "subs") == 0) {
-		return handle_subs();
 	} else {
 		// MAYBE: handle as fetch
 		fprintf(stderr, "[ERROR]: unsupported command: %s\n", argv[1]);
