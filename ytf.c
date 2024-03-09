@@ -47,7 +47,7 @@ int handle_health(char *msg) {
 		return errno;
 	}
 	int buf_size = calc_buf_size(pre_buf);
-	char buf[buf_size];
+	char buf[buf_size+1];
 	n = read(sockfd, buf, buf_size);
 	if (n == -1) {
 		close(sockfd);
@@ -139,7 +139,7 @@ int handle_search(char *channel_name) {
 		return errno;
 	}
 	int buf_size = calc_buf_size(pre_buf);
-	char buf[buf_size];
+	char buf[buf_size+1];
 	n = read(sockfd, buf, buf_size);
 	if (n == -1) {
 		close(sockfd);
@@ -184,7 +184,7 @@ int handle_unsub(char *channel_name) {
 		return errno;
 	}
 	int buf_size = calc_buf_size(pre_buf);
-	char buf[buf_size];
+	char buf[buf_size+1];
 	n = read(sockfd, buf, buf_size);
 	if (n == -1) {
 		close(sockfd);
@@ -218,18 +218,23 @@ int handle_subs() {
 		return errno;
 	}
 
-	char buf[256];
-	int n = read(sockfd, buf, 256);
+	char pre_buf[3];
+	int n = read(sockfd, pre_buf, 3);
 	if (n == -1) {
 		close(sockfd);
-		fprintf(stderr, "[ERROR]: failed to read subs: %s\n", strerror(errno));
+		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
 		return errno;
 	}
-
-	if (n < 256) {
-		buf[n] = '\0';
+	int buf_size = calc_buf_size(pre_buf);
+	char buf[buf_size+1];
+	n = read(sockfd, buf, buf_size);
+	if (n == -1) {
+		close(sockfd);
+		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
+		return errno;
 	}
-	printf("%s", buf);
+	buf[n] = '\0';
+	printf("%s\n", buf);
 
 	if (close(sockfd) == -1) {
 		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
@@ -276,7 +281,7 @@ int handle_fetch(char *channel_name) {
 	}
 
 	int msg_size_get = calc_buf_size(pre_buf_get);
-	char buf_get[msg_size_get];
+	char buf_get[msg_size_get+1];
 	n = read(sockfd, buf_get, msg_size_get);
 	if (n == -1) {
 		close(sockfd);
@@ -323,7 +328,7 @@ int handle_fetch(char *channel_name) {
 	}
 
 	int msg_size_fetch = calc_buf_size(pre_buf_fetch);
-	char buf_fetch[msg_size_fetch];
+	char buf_fetch[msg_size_fetch+1];
 	n = read(sockfd, buf_fetch, msg_size_fetch);
 	if (n == -1) {
 		close(sockfd);

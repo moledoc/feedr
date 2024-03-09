@@ -565,7 +565,7 @@ func handleHealth(l net.Listener) {
 				return
 			}
 			buf = buf[:n]
-			response := fmt.Sprintf("received: '%v'", string(buf))
+			response := fmt.Sprintf("'%v'", string(buf))
 			send(c, success, response)
 		}(conn)
 	}
@@ -583,14 +583,15 @@ func handleSubs(l net.Listener) {
 			chs, err := feed.subs()
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "[ERROR]: failed to retrieve subs: %v\n", err)
+				send(c, failure, err.Error())
 				return
 			}
-			var response []byte
+			var channelNames []string
 			for _, ch := range chs {
-				response = append(response, []byte(ch.Name)...)
-				response = append(response, '\n')
+				channelNames = append(channelNames, ch.Name)
 			}
-			c.Write(response)
+			response := strings.Join(channelNames, "\n")
+			send(c, success, response)
 		}(conn)
 	}
 }
