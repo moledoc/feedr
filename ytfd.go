@@ -407,20 +407,19 @@ func handleGet(l net.Listener) {
 			defer c.Close()
 			channelName := make([]byte, 128)
 			n, err := conn.Read(channelName)
-			// TODO: better error log. Also write a response
+			// TODO: better error log.
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "[ERROR]: didn't understand '%v' for 'get': %v\n", string(channelName), err)
+				send(c, failure, err.Error())
 				return
 			}
 			channelName = channelName[:n]
 			ch, err := feed.get(string(channelName))
 			if err != nil {
-				response := []byte{0}
-				response = append(response, []byte(err.Error())...)
-				c.Write(response)
+				send(c, failure, err.Error())
 				return
 			}
-			c.Write([]byte(ch.String()))
+			send(c, success, ch.String())
 		}(conn)
 	}
 }

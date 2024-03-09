@@ -89,7 +89,6 @@ int handle_sub(char *chan_name) {
 		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
 		return errno;
 	}
-	buf[n] = '\0';
 	printf("%s", buf);
 	if (!pre_buf[0]) {
 		status = EADDRINUSE; // TODO: better error code
@@ -230,35 +229,30 @@ int handle_fetch(char *channel_name) {
 		return errno;
 	}
 
-	// TODO: fix
-	char pre_buf[3];
-	n = read(sockfd, pre_buf, 3);
+	char pre_buf_get[3];
+	n = read(sockfd, pre_buf_get, 3);
 	if (n == -1) {
 		close(sockfd);
 		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
 		return errno;
 	}
 
-	printf("%d %d %d", pre_buf[0], pre_buf[1], pre_buf[2]);
-	if (pre_buf[0]) {
-		int msg_size = (pre_buf[1]-'0')*10+(pre_buf[2]-'0');
-		printf("%d\n", msg_size);
-		char buf[msg_size];
-		n = read(sockfd, buf, msg_size);
-		if (n == -1) {
-			close(sockfd);
+	int msg_size_get = calc_buf_size(pre_buf_get);
+	char buf_get[msg_size_get];
+	n = read(sockfd, buf_get, msg_size_get);
+	if (n == -1) {
+		close(sockfd);
+		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
+		return errno;
+	}
+	printf("%s", buf_get);
+	if (pre_buf_get[0]) {
+		if (close(sockfd) == -1) {
 			fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
 			return errno;
 		}
-		if (n != msg_size) {
-			fprintf(stderr, "[WARN]: read incorrect nr of bytes: %d vs %d\n", n, msg_size);
-		}
-		printf("%s", buf);
-		goto finish;
+		return 0;
 	}
-	return 0;
-
-	char buf[1024]; // REMOVEME:
 
 	printf("[NOTE]: not subbed to channel '%s'\n", channel_name);
 	if (close(sockfd) == -1) {
@@ -281,23 +275,25 @@ int handle_fetch(char *channel_name) {
 		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
 		return errno;
 	}
-	memset(buf, 0, sizeof(buf));
-	n = read(sockfd, buf, 1024);
+
+	char pre_buf_fetch[3];
+	n = read(sockfd, pre_buf_fetch, 3);
 	if (n == -1) {
 		close(sockfd);
 		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
 		return errno;
 	}
-	if (n < 1024) {
-		buf[n] = '\0';
-	}
-	if (buf[0] == 0) {
-		fprintf(stderr, "[ERROR]: %s\n", buf+1);
-		return EINVAL;
-	}
-	printf(buf);
 
-finish:
+	int msg_size_fetch = calc_buf_size(pre_buf_fetch);
+	char buf_fetch[msg_size_fetch];
+	n = read(sockfd, buf_fetch, msg_size_fetch);
+	if (n == -1) {
+		close(sockfd);
+		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
+		return errno;
+	}
+	printf("%s", buf_fetch);
+
 	if (close(sockfd) == -1) {
 		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
 		return errno;
@@ -339,7 +335,7 @@ int main(int argc, char **argv) {
 		if (handle_sub(argv[2]) == 0) {
 			return 0;
 		}
-		// return handle_search(argv[2]);
+		// return handle_search(argv[2]); // TODO: distinguish between conflict and incorrect channel name
 	} else if (strcmp(argv[1], "unsub") == 0) {
 		return handle_unsub(argv[2]);
 	} else if (strcmp(argv[1], "fetch") == 0 || strcmp(argv[1], "get") == 0) {
