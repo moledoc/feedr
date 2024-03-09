@@ -115,17 +115,24 @@ int handle_search(char *channel_name) {
 	}
 
 	write(sockfd, channel_name, strlen(channel_name));
-	char buf[256];
-	int n = read(sockfd, buf, 256);
+
+	char pre_buf[3];
+	int n = read(sockfd, pre_buf, 3);
 	if (n == -1) {
 		close(sockfd);
-		fprintf(stderr, "[ERROR]: read search: %s\n", strerror(errno));
+		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
 		return errno;
 	}
-	if (n < 256) {
-		buf[n] = '\0';
+	int buf_size = calc_buf_size(pre_buf);
+	char buf[buf_size];
+	n = read(sockfd, buf, buf_size);
+	if (n == -1) {
+		close(sockfd);
+		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
+		return errno;
 	}
-	fprintf(stdout, "%s\n", buf);
+	buf[n] = '\0';
+	printf("%s\n", buf);
 
 	if (close(sockfd) == -1) {
 		fprintf(stderr, "[ERROR]: close search: %s\n", strerror(errno));

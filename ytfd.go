@@ -435,7 +435,7 @@ func handleRm(l net.Listener) {
 			defer c.Close()
 			channelName := make([]byte, 128)
 			n, err := c.Read(channelName)
-			// TODO: better error log. Also write a response
+			// TODO: better error log.
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "[ERROR]: didn't understand '%v' for 'rm': %v\n", string(channelName), err)
 				send(c, failure, err.Error())
@@ -488,16 +488,16 @@ func handleRefresh(l net.Listener) {
 	}
 }
 
-func search(query []byte) ([]byte, error) {
+func search(query []byte) (string, error) {
 	query = bytes.ReplaceAll(query, []byte(" "), []byte("+"))
 	query = bytes.ToLower(query)
 	resp, err := http.Get(querySearchURLBase + string(query))
 	if err != nil || resp.Body == nil {
-		return []byte{}, fmt.Errorf("failed to search for '%v': %v\n", string(query), err)
+		return "", fmt.Errorf("failed to search for '%v': %v\n", string(query), err)
 	}
 	respBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return []byte{}, fmt.Errorf("failed to read response body: %v", err)
+		return "", fmt.Errorf("failed to read response body: %v", err)
 	}
 	re := regexp.MustCompile(fmt.Sprintf("\"/@\\w*%v\\w*\"", string(query)))
 	indices := re.FindAllIndex(bytes.ToLower(respBytes), -1)
@@ -514,7 +514,10 @@ func search(query []byte) ([]byte, error) {
 		foundThese = append(foundThese, k[3:len(k)-1]) // index from 3, because want to drop '"/@'; len(k)-1 to drop '"'
 	}
 	found := strings.Join(foundThese, ", ")
-	return []byte(found), nil
+	if len(found) == 0 {
+		found = fmt.Sprintf("found no channel like %q", string(query))
+	}
+	return found, nil
 }
 
 func handleSearch(l net.Listener) {
@@ -530,15 +533,17 @@ func handleSearch(l net.Listener) {
 			n, err := c.Read(query)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "[ERROR]: 'search' failed to read input: %v\n", err)
+				send(c, failure, err.Error())
 				return
 			}
 			query = query[:n]
 			chNames, err := search(query)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "[ERROR]: %v\n", err)
+				send(c, failure, err.Error())
 				return
 			}
-			c.Write(chNames)
+			send(c, success, chNames)
 		}(conn)
 	}
 }
