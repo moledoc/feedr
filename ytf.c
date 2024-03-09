@@ -11,6 +11,15 @@
 // TODO: help function
 // MAYBE: TODO: testing; could have a special endpoint that swaps to "local db" instance and can run deterministic tests against that.
 
+int calc_buf_size(char pre_buf[3]) {
+	int buf_size = 2;
+	int pow = pre_buf[1]*10+pre_buf[2];
+	for (int i=0; i<pow-1; ++i) {
+		buf_size *= 2;
+	}
+	return buf_size;
+}
+
 int handle_health(char *msg) {
 	int sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
 	if (sockfd == -1) {
@@ -64,24 +73,28 @@ int handle_sub(char *chan_name) {
 		return errno;
 	}
 
-	char buf[256];
-	n = read(sockfd, buf, 256);
+	char pre_buf[3];
+	n = read(sockfd, pre_buf, 3);
 	if (n == -1) {
 		close(sockfd);
-		fprintf(stderr, "[ERROR]: read sub: %s\n", strerror(errno));
+		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
 		return errno;
 	}
-	if (n < 256) {
-		buf[n] = '\0';
+	
+	int msg_size = calc_buf_size(pre_buf);
+	char buf[msg_size];
+	n = read(sockfd, buf, msg_size);
+	if (n == -1) {
+		close(sockfd);
+		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
+		return errno;
 	}
-	if (n != 0) {
-		status = ENOMEDIUM;
-	}	
+	buf[n] = '\0';
+	printf("%s", buf);
+	if (!pre_buf[0]) {
+		status = EADDRINUSE; // TODO: better error code
+	}
 
-	if (close(sockfd) == -1) {
-		fprintf(stderr, "[ERROR]: failed to close socket: %s\n", strerror(errno));
-		return errno;
-	}
 	return status;		
 }
 
@@ -217,20 +230,35 @@ int handle_fetch(char *channel_name) {
 		return errno;
 	}
 
-	char buf[1024];
-	n = read(sockfd, buf, 1024);
+	// TODO: fix
+	char pre_buf[3];
+	n = read(sockfd, pre_buf, 3);
 	if (n == -1) {
 		close(sockfd);
 		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
 		return errno;
 	}
-	if (n < 1024) {
-		buf[n] = '\0';
-	}
-	if (buf[0]) {
+
+	printf("%d %d %d", pre_buf[0], pre_buf[1], pre_buf[2]);
+	if (pre_buf[0]) {
+		int msg_size = (pre_buf[1]-'0')*10+(pre_buf[2]-'0');
+		printf("%d\n", msg_size);
+		char buf[msg_size];
+		n = read(sockfd, buf, msg_size);
+		if (n == -1) {
+			close(sockfd);
+			fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
+			return errno;
+		}
+		if (n != msg_size) {
+			fprintf(stderr, "[WARN]: read incorrect nr of bytes: %d vs %d\n", n, msg_size);
+		}
 		printf("%s", buf);
 		goto finish;
 	}
+	return 0;
+
+	char buf[1024]; // REMOVEME:
 
 	printf("[NOTE]: not subbed to channel '%s'\n", channel_name);
 	if (close(sockfd) == -1) {
@@ -311,7 +339,7 @@ int main(int argc, char **argv) {
 		if (handle_sub(argv[2]) == 0) {
 			return 0;
 		}
-		return handle_search(argv[2]);
+		// return handle_search(argv[2]);
 	} else if (strcmp(argv[1], "unsub") == 0) {
 		return handle_unsub(argv[2]);
 	} else if (strcmp(argv[1], "fetch") == 0 || strcmp(argv[1], "get") == 0) {

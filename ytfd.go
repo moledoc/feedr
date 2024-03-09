@@ -25,7 +25,11 @@ import (
 // TODO: better logging/responses
 // TODO: more uniform func signatures
 // TODO: do GET calls with 'net' pkg
-// MAYBE: response's first byte indicates success/failure: 1/0.
+// MAYBE: pre-msg: 1 byte for success/fail and 2 bytes for buf size in power of 2
+// i.e. 107 would mean:
+//		[1] call was successful
+// 		[07] there are up to 2^7 bytes to read
+// only send second msg if was successful
 
 type db interface {
 	add(string, *channel) error
@@ -283,7 +287,32 @@ func fetch(chName []byte, chURL []byte) (*channel, error) {
 	}
 	fetchedChannel.Name = string(chName)
 	fetchedChannel.URL = string(chURL)
+	if len(fetchedChannel.Videos) > maxFeedSize {
+		fetchedChannel.Videos = fetchedChannel.Videos[:maxFeedSize]
+	}
 	return &fetchedChannel, nil
+}
+
+type state byte
+
+const (
+	failure state = iota
+	success
+)
+
+func send(c net.Conn, st state, resp string) {
+	pow := 1
+	for res := 2; res < len(resp); res *= 2 {
+		pow++
+	}
+	var msg []byte
+	msg = append(msg, byte(st))
+	msg = append(msg, byte(pow/10))
+	msg = append(msg, byte(pow%10))
+	msg = append(msg, []byte(resp)...)
+	fmt.Println("HERE", msg, resp)
+	c.Write(msg)
+	fmt.Fprintf(os.Stderr, "[INFO]: sending %v bytes\n", len(resp))
 }
 
 func handleFetch(l net.Listener) {
@@ -300,27 +329,23 @@ func handleFetch(l net.Listener) {
 			// TODO: better error log. Also write a response
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "[ERROR]: didn't understand '%v' for 'fetch': %v\n", string(channelName), err)
+				send(c, failure, "")
 				return
 			}
 			channelName = channelName[:n]
 			channelURL, err := getChannelURL(channelName)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "[ERROR]: %v\n", err)
-				resp := []byte{0}
-				resp = append(resp, []byte(err.Error())...)
-				c.Write(resp)
+				send(c, failure, "")
 				return
 			}
 
 			channelFetched, err := fetch(channelName, channelURL)
 			if err != nil {
-				resp := []byte{0}
-				resp = append(resp, []byte(err.Error())...)
-				c.Write(resp)
+				send(c, failure, "")
 				return
 			}
-
-			c.Write([]byte(channelFetched.String()))
+			send(c, success, channelFetched.String())
 		}(conn)
 	}
 }
@@ -339,31 +364,34 @@ func handleAdd(l net.Listener) {
 			// TODO: better error log. Also write a response
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "[ERROR]: didn't understand '%v' for 'add': %v\n", string(channelName), err)
+				send(c, failure, err.Error())
 				return
 			}
 			channelName = channelName[:n]
 			_, err = feed.get(string(channelName))
-			if err == nil {
+			if err == nil { // NOTE: already subbed
+				send(c, failure, fmt.Sprintf("already subscribed to channel %q\n", string(channelName)))
 				return
 			}
 			channelURL, err := getChannelURL(channelName)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "[ERROR]: %v\n", err)
-				c.Write([]byte(err.Error()))
+				send(c, failure, err.Error())
 				return
 			}
 			channelFetched, err := fetch(channelName, channelURL)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "[ERROR]: failed to fetch '%v': %v\n", string(channelName), err)
-				c.Write([]byte(err.Error()))
+				send(c, failure, err.Error())
 				return
 			}
 			err = feed.add(string(channelName), channelFetched)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "[ERROR]: failed to add: %v\n", err)
-				c.Write([]byte(err.Error()))
+				send(c, failure, err.Error())
 				return
 			}
+			send(c, success, fmt.Sprintf("subscribed to channel %q\n", string(channelName)))
 		}(conn)
 	}
 }
