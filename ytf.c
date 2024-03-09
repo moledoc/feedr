@@ -39,9 +39,24 @@ int handle_health(char *msg) {
 
 	write(sockfd, msg, strlen(msg));
 
-	char resp[256];
-	ssize_t n = read(sockfd, resp, 256);
-	printf("%s\n", resp);
+	char pre_buf[3];
+	int n = read(sockfd, pre_buf, 3);
+	if (n == -1) {
+		close(sockfd);
+		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
+		return errno;
+	}
+	int buf_size = calc_buf_size(pre_buf);
+	char buf[buf_size];
+	n = read(sockfd, buf, buf_size);
+	if (n == -1) {
+		close(sockfd);
+		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
+		return errno;
+	}
+	buf[n] = '\0';
+	printf("%s\n", buf);
+
 	if (close(sockfd) == -1) {
 		fprintf(stderr, "[WARNING]: %s\n", strerror(errno));
 		return errno;
@@ -335,6 +350,8 @@ int main(int argc, char **argv) {
 	if (argc == 2) {
 		if (strcmp(argv[1], "help") == 0 || strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0) {
 			return help();
+		} else if (strcmp(argv[1], "health") == 0) {
+			return handle_health("I'm! alive!!! muhahahaha!");
 		} else if (strcmp(argv[1], "subs") == 0) {
 			return handle_subs();
 		} else {

@@ -561,11 +561,12 @@ func handleHealth(l net.Listener) {
 			n, err := c.Read(buf)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "[WARN]: failed to read input on 'health': %v\n", err)
+				send(c, failure, err.Error())
 				return
 			}
 			buf = buf[:n]
-			response := fmt.Sprintf("received: '%v'\n", string(buf))
-			c.Write([]byte(response))
+			response := fmt.Sprintf("received: '%v'", string(buf))
+			send(c, success, response)
 		}(conn)
 	}
 }
