@@ -438,10 +438,12 @@ func handleRm(l net.Listener) {
 			// TODO: better error log. Also write a response
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "[ERROR]: didn't understand '%v' for 'rm': %v\n", string(channelName), err)
+				send(c, failure, err.Error())
 				return
 			}
 			channelName = channelName[:n]
 			feed.rm(string(channelName))
+			send(c, success, fmt.Sprintf("unsubscribed from channel %q", string(channelName)))
 		}(conn)
 	}
 }

@@ -154,7 +154,23 @@ int handle_unsub(char *channel_name) {
 
 	write(sockfd, channel_name, strlen(channel_name));
 
-	// TODO: read response. needs response from daemon though.
+	char pre_buf[3];
+	int n = read(sockfd, pre_buf, 3);
+	if (n == -1) {
+		close(sockfd);
+		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
+		return errno;
+	}
+	int buf_size = calc_buf_size(pre_buf);
+	char buf[buf_size];
+	n = read(sockfd, buf, buf_size);
+	if (n == -1) {
+		close(sockfd);
+		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
+		return errno;
+	}
+	buf[n] = '\0';
+	printf("%s\n", buf);
 
 	if (close(sockfd) == -1) {
 		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
@@ -245,6 +261,7 @@ int handle_fetch(char *channel_name) {
 		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
 		return errno;
 	}
+	buf_get[n] = '\0';
 	printf("%s", buf_get);
 	if (pre_buf_get[0]) {
 		if (close(sockfd) == -1) {
@@ -254,7 +271,6 @@ int handle_fetch(char *channel_name) {
 		return 0;
 	}
 
-	printf("[NOTE]: not subbed to channel '%s'\n", channel_name);
 	if (close(sockfd) == -1) {
 		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
 		return errno;
@@ -292,6 +308,7 @@ int handle_fetch(char *channel_name) {
 		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
 		return errno;
 	}
+	buf_fetch[n] = '\0';
 	printf("%s", buf_fetch);
 
 	if (close(sockfd) == -1) {
