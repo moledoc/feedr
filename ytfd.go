@@ -20,16 +20,16 @@ import (
 
 // TODO: write logs into file instead of stdout/stderr
 // TODO: add flags:
-// 	- MAYBE: actual db with docker
 // MAYBE: TODO: limit video count controllable with flag
 // TODO: better logging/responses
-// TODO: more uniform func signatures
+// MABYE: TODO: more uniform func signatures
 // TODO: do GET calls with 'net' pkg
-// MAYBE: pre-msg: 1 byte for success/fail and 2 bytes for buf size in power of 2
+// DONE: MAYBE: pre-msg: 1 byte for success/fail and 2 bytes for buf size in power of 2
 // i.e. 107 would mean:
 //		[1] call was successful
 // 		[07] there are up to 2^7 bytes to read
 // only send second msg if was successful
+// TODO: write the pre-msg approach to readme
 
 type db interface {
 	add(string, *channel) error
@@ -326,7 +326,7 @@ func handleFetch(l net.Listener) {
 			defer c.Close()
 			channelName := make([]byte, 128)
 			n, err := c.Read(channelName)
-			// TODO: better error log. Also write a response
+			// TODO: better error log.
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "[ERROR]: didn't understand '%v' for 'fetch': %v\n", string(channelName), err)
 				send(c, failure, "")
@@ -361,7 +361,7 @@ func handleAdd(l net.Listener) {
 			defer c.Close()
 			channelName := make([]byte, 128)
 			n, err := c.Read(channelName)
-			// TODO: better error log. Also write a response
+			// TODO: better error log.
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "[ERROR]: didn't understand '%v' for 'add': %v\n", string(channelName), err)
 				send(c, failure, err.Error())
@@ -370,7 +370,7 @@ func handleAdd(l net.Listener) {
 			channelName = channelName[:n]
 			_, err = feed.get(string(channelName))
 			if err == nil { // NOTE: already subbed
-				send(c, failure, fmt.Sprintf("already subscribed to channel %q\n", string(channelName)))
+				send(c, failure, fmt.Sprintf("already subscribed to channel %q", string(channelName)))
 				return
 			}
 			channelURL, err := getChannelURL(channelName)
@@ -391,7 +391,7 @@ func handleAdd(l net.Listener) {
 				send(c, failure, err.Error())
 				return
 			}
-			send(c, success, fmt.Sprintf("subscribed to channel %q\n", string(channelName)))
+			send(c, success, fmt.Sprintf("subscribed to channel %q", string(channelName)))
 		}(conn)
 	}
 }
@@ -591,6 +591,9 @@ func handleSubs(l net.Listener) {
 				channelNames = append(channelNames, ch.Name)
 			}
 			response := strings.Join(channelNames, "\n")
+			if len(response) == 0 {
+				response = "no subscriptions"
+			}
 			send(c, success, response)
 		}(conn)
 	}

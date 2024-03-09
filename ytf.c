@@ -8,6 +8,8 @@
 // TODO: logging
 // TODO: better responses
 // TODO: convenience func to connect to socket. For now I'll type out manually for practice.
+// TODO: convenience func to close sockfd.
+// TODO: convenience func to handle errors
 // TODO: help function
 // MAYBE: TODO: testing; could have a special endpoint that swaps to "local db" instance and can run deterministic tests against that.
 
@@ -18,6 +20,27 @@ int calc_buf_size(char pre_buf[3]) {
 		buf_size *= 2;
 	}
 	return buf_size;
+}
+
+int handle_response(int sockfd) {
+	char pre_buf[3];
+	int n = read(sockfd, pre_buf, 3);
+	if (n == -1) {
+		close(sockfd);
+		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
+		return errno;
+	}
+	int buf_size = calc_buf_size(pre_buf);
+	char buf[buf_size+1];
+	n = read(sockfd, buf, buf_size);
+	if (n == -1) {
+		close(sockfd);
+		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
+		return errno;
+	}
+	buf[n] = '\0';
+	printf("%s\n", buf);
+	return pre_buf[0];
 }
 
 int handle_health(char *msg) {
@@ -37,25 +60,14 @@ int handle_health(char *msg) {
 		return errno;
 	}
 
-	write(sockfd, msg, strlen(msg));
+	int n = write(sockfd, msg, strlen(msg));
+	if (n == -1) {
+		close(sockfd);
+		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
+		return errno;
+	}
 
-	char pre_buf[3];
-	int n = read(sockfd, pre_buf, 3);
-	if (n == -1) {
-		close(sockfd);
-		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
-		return errno;
-	}
-	int buf_size = calc_buf_size(pre_buf);
-	char buf[buf_size+1];
-	n = read(sockfd, buf, buf_size);
-	if (n == -1) {
-		close(sockfd);
-		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
-		return errno;
-	}
-	buf[n] = '\0';
-	printf("%s\n", buf);
+	handle_response(sockfd);
 
 	if (close(sockfd) == -1) {
 		fprintf(stderr, "[WARNING]: %s\n", strerror(errno));
@@ -88,24 +100,8 @@ int handle_sub(char *chan_name) {
 		return errno;
 	}
 
-	char pre_buf[3];
-	n = read(sockfd, pre_buf, 3);
-	if (n == -1) {
-		close(sockfd);
-		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
-		return errno;
-	}
-	
-	int msg_size = calc_buf_size(pre_buf);
-	char buf[msg_size];
-	n = read(sockfd, buf, msg_size);
-	if (n == -1) {
-		close(sockfd);
-		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
-		return errno;
-	}
-	printf("%s", buf);
-	if (!pre_buf[0]) {
+	int successful = handle_response(sockfd);
+	if (!successful) {
 		status = EADDRINUSE; // TODO: better error code
 	}
 
@@ -129,25 +125,14 @@ int handle_search(char *channel_name) {
 		return errno;
 	}
 
-	write(sockfd, channel_name, strlen(channel_name));
+	int n = write(sockfd, channel_name, strlen(channel_name));
+	if (n == -1) {
+		close(sockfd);
+		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
+		return errno;
+	}
 
-	char pre_buf[3];
-	int n = read(sockfd, pre_buf, 3);
-	if (n == -1) {
-		close(sockfd);
-		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
-		return errno;
-	}
-	int buf_size = calc_buf_size(pre_buf);
-	char buf[buf_size+1];
-	n = read(sockfd, buf, buf_size);
-	if (n == -1) {
-		close(sockfd);
-		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
-		return errno;
-	}
-	buf[n] = '\0';
-	printf("%s\n", buf);
+	handle_response(sockfd);
 
 	if (close(sockfd) == -1) {
 		fprintf(stderr, "[ERROR]: close search: %s\n", strerror(errno));
@@ -174,25 +159,14 @@ int handle_unsub(char *channel_name) {
 		return errno;
 	}
 
-	write(sockfd, channel_name, strlen(channel_name));
+	int n = write(sockfd, channel_name, strlen(channel_name));
+	if (n == -1) {
+		close(sockfd);
+		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
+		return errno;
+	}
 
-	char pre_buf[3];
-	int n = read(sockfd, pre_buf, 3);
-	if (n == -1) {
-		close(sockfd);
-		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
-		return errno;
-	}
-	int buf_size = calc_buf_size(pre_buf);
-	char buf[buf_size+1];
-	n = read(sockfd, buf, buf_size);
-	if (n == -1) {
-		close(sockfd);
-		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
-		return errno;
-	}
-	buf[n] = '\0';
-	printf("%s\n", buf);
+	handle_response(sockfd);
 
 	if (close(sockfd) == -1) {
 		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
@@ -218,23 +192,7 @@ int handle_subs() {
 		return errno;
 	}
 
-	char pre_buf[3];
-	int n = read(sockfd, pre_buf, 3);
-	if (n == -1) {
-		close(sockfd);
-		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
-		return errno;
-	}
-	int buf_size = calc_buf_size(pre_buf);
-	char buf[buf_size+1];
-	n = read(sockfd, buf, buf_size);
-	if (n == -1) {
-		close(sockfd);
-		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
-		return errno;
-	}
-	buf[n] = '\0';
-	printf("%s\n", buf);
+	handle_response(sockfd);
 
 	if (close(sockfd) == -1) {
 		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
@@ -272,25 +230,8 @@ int handle_fetch(char *channel_name) {
 		return errno;
 	}
 
-	char pre_buf_get[3];
-	n = read(sockfd, pre_buf_get, 3);
-	if (n == -1) {
-		close(sockfd);
-		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
-		return errno;
-	}
-
-	int msg_size_get = calc_buf_size(pre_buf_get);
-	char buf_get[msg_size_get+1];
-	n = read(sockfd, buf_get, msg_size_get);
-	if (n == -1) {
-		close(sockfd);
-		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
-		return errno;
-	}
-	buf_get[n] = '\0';
-	printf("%s", buf_get);
-	if (pre_buf_get[0]) {
+	int successful = handle_response(sockfd);
+	if (successful) {
 		if (close(sockfd) == -1) {
 			fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
 			return errno;
@@ -319,25 +260,7 @@ int handle_fetch(char *channel_name) {
 		return errno;
 	}
 
-	char pre_buf_fetch[3];
-	n = read(sockfd, pre_buf_fetch, 3);
-	if (n == -1) {
-		close(sockfd);
-		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
-		return errno;
-	}
-
-	int msg_size_fetch = calc_buf_size(pre_buf_fetch);
-	char buf_fetch[msg_size_fetch+1];
-	n = read(sockfd, buf_fetch, msg_size_fetch);
-	if (n == -1) {
-		close(sockfd);
-		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
-		return errno;
-	}
-	buf_fetch[n] = '\0';
-	printf("%s", buf_fetch);
-
+	handle_response(sockfd);
 	if (close(sockfd) == -1) {
 		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
 		return errno;
