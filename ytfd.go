@@ -18,10 +18,7 @@ import (
 	"time"
 )
 
-// TODO: write logs into file instead of stdout/stderr
-// TODO: write the pre-msg approach to readme
-
-// NOTE: manual creation of listeners is for practice purposes, but ideas how to compact (MAYBE: compact).
+// TODO: better logging
 
 type db interface {
 	add(string, *channel) error
@@ -48,6 +45,19 @@ type channel struct {
 	URL    string
 	Videos []*video `xml:"entry"`
 }
+
+type endpoint struct {
+	sockName string
+	handle   func(net.Listener)
+	blocking bool
+}
+
+type state byte
+
+const (
+	failure state = iota
+	success
+)
 
 const (
 	listenersSize             = 8
@@ -102,6 +112,24 @@ func (vs videos) String() string {
 
 func (c *channel) String() string {
 	return fmt.Sprintf("%v\n\t%v\n\n%v", c.Name, c.URL, videos(c.Videos).String())
+}
+
+func (ep endpoint) serve() {
+	if err := os.RemoveAll(ep.sockName); err != nil {
+		fmt.Fprintf(os.Stderr, "[ERROR]: failed to remove all from socket '%v': %v\n", ep.sockName, err)
+		return
+	}
+	listener, err := net.Listen("unix", ep.sockName)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "[ERROR]: failed to listen to socket '%v': %v\n", ep.sockName, err)
+		return
+	}
+	listeners.add(listener)
+	if ep.blocking {
+		ep.handle(listener)
+	} else {
+		go ep.handle(listener)
+	}
 }
 
 func subsFromFile(fname string) {
@@ -202,8 +230,7 @@ func (ldb *localDb) add(c string, ch *channel) error {
 		ldbCh.Videos = append(ch.Videos[:i], ldbCh.Videos[:min(maxFeedSize, len(ldbCh.Videos))]...)
 		return nil
 	}
-	// REMOVEME:
-	ch.Videos = ch.Videos[1:min(maxFeedSize, len(ch.Videos))]
+	ch.Videos = ch.Videos[:min(maxFeedSize, len(ch.Videos))]
 	ldb.c[c] = ch
 	return nil
 }
@@ -284,13 +311,6 @@ func fetch(chName []byte, chURL []byte) (*channel, error) {
 	}
 	return &fetchedChannel, nil
 }
-
-type state byte
-
-const (
-	failure state = iota
-	success
-)
 
 // send is a function that takes the state (success/failure) and response message. It encodes the response in the following way
 // * first byte is the state, i.e. whether the request was successful or not.
@@ -591,11 +611,12 @@ func handleSubs(l net.Listener) {
 }
 
 func main() {
-	flagNotify = flag.Bool("notify", true, "creates dunstify notification when a new video for a subscribed channel is detected. Depends on dunstify")
+	flagNotify = flag.Bool("notify", true, "creates dunstify notification when a new video for a subscribed channel is detected. Depends on dunstify. Default is `true`; if dunstify is not detected in the system, internal value is set to false")
 	flagSubsFromFile := flag.String("subs", "", "path to file that contains names of subscribed channels, one per each line")
 	flagRefreshRate = flag.Int("refrate", 15, "refresh rate in minutes, i.e. how often daemon checks youtube")
 	flag.Parse()
 
+	// gracefully close on exit
 	defer listeners.close()
 	sigtermCh := make(chan os.Signal)
 	signal.Notify(sigtermCh, os.Interrupt, syscall.SIGTERM)
@@ -605,109 +626,46 @@ func main() {
 		os.Exit(0)
 	}()
 
+	// feat: subs from file
 	go subsFromFile(*flagSubsFromFile)
 
-	sockNameFetch := "/tmp/ytfd.fetch.sock"
-	if err := os.RemoveAll(sockNameFetch); err != nil {
-		fmt.Fprintf(os.Stderr, "[ERROR]: failed to remove all from 'fetch' socket ('%v'): %v\n", sockNameFetch, err)
-		return
+	endpoints := [listenersSize]endpoint{
+		{
+			sockName: "/tmp/ytfd.fetch.sock",
+			handle:   handleFetch,
+		},
+		{
+			sockName: "/tmp/ytfd.add.sock",
+			handle:   handleAdd,
+		},
+		{
+			sockName: "/tmp/ytfd.get.sock",
+			handle:   handleGet,
+		},
+		{
+			sockName: "/tmp/ytfd.rm.sock",
+			handle:   handleRm,
+		},
+		{
+			sockName: "/tmp/ytfd.refresh.sock",
+			handle:   handleRefresh,
+		},
+		{
+			sockName: "/tmp/ytfd.search.sock",
+			handle:   handleSearch,
+		},
+		{
+			sockName: "/tmp/ytfd.subs.sock",
+			handle:   handleSubs,
+		},
+		{
+			sockName: "/tmp/ytfd.health.sock",
+			handle:   handleHealth,
+			blocking: true,
+		},
 	}
-	listenFetch, err := net.Listen("unix", sockNameFetch)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "[ERROR]: failed to listen to 'fetch' socket ('%v'): %v\n", sockNameFetch, err)
-		return
-	}
-	listeners.add(listenFetch)
-	go handleFetch(listenFetch)
 
-	sockNameAdd := "/tmp/ytfd.add.sock"
-	if err := os.RemoveAll(sockNameAdd); err != nil {
-		fmt.Fprintf(os.Stderr, "[ERROR]: failed to remove all from 'add' socket ('%v'): %v\n", sockNameAdd, err)
-		return
+	for _, endpoint := range endpoints {
+		endpoint.serve()
 	}
-	listenAdd, err := net.Listen("unix", sockNameAdd)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "[ERROR]: failed to listen to 'add' socket ('%v'): %v\n", sockNameAdd, err)
-		return
-	}
-	listeners.add(listenAdd)
-	go handleAdd(listenAdd)
-
-	sockNameGet := "/tmp/ytfd.get.sock"
-	if err := os.RemoveAll(sockNameGet); err != nil {
-		fmt.Fprintf(os.Stderr, "[ERROR]: failed to remove all from 'get' socket ('%v'): %v\n", sockNameGet, err)
-		return
-	}
-	listenGet, err := net.Listen("unix", sockNameGet)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "[ERROR]: failed to listen to 'get' socket ('%v'): %v\n", sockNameGet, err)
-		return
-	}
-	listeners.add(listenGet)
-	go handleGet(listenGet)
-
-	sockNameRm := "/tmp/ytfd.rm.sock"
-	if err := os.RemoveAll(sockNameRm); err != nil {
-		fmt.Fprintf(os.Stderr, "[ERROR]: failed to remove all from 'rm' socket ('%v'): %v\n", sockNameRm, err)
-		return
-	}
-	listenRm, err := net.Listen("unix", sockNameRm)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "[ERROR]: failed to listen to 'rm' socket ('%v'): %v\n", sockNameRm, err)
-		return
-	}
-	listeners.add(listenRm)
-	go handleRm(listenRm)
-
-	sockNameRefresh := "/tmp/ytfd.refresh.sock"
-	if err := os.RemoveAll(sockNameRefresh); err != nil {
-		fmt.Fprintf(os.Stderr, "[ERROR]: failed to remove all from 'refresh' socket ('%v'): %v\n", sockNameRefresh, err)
-		return
-	}
-	listenRefresh, err := net.Listen("unix", sockNameRefresh)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "[ERROR]: failed to listen to 'refresh' socket ('%v'): %v\n", sockNameRefresh, err)
-		return
-	}
-	listeners.add(listenRefresh)
-	go handleRefresh(listenRefresh)
-
-	sockNameSearch := "/tmp/ytfd.search.sock"
-	if err := os.RemoveAll(sockNameSearch); err != nil {
-		fmt.Fprintf(os.Stderr, "[ERROR]: failed to remove all from 'search' socket ('%v'): %v\n", sockNameSearch, err)
-		return
-	}
-	listenSearch, err := net.Listen("unix", sockNameSearch)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "[ERROR]: failed to listen to 'search' socket ('%v'): %v\n", sockNameSearch, err)
-		return
-	}
-	listeners.add(listenSearch)
-	go handleSearch(listenSearch)
-
-	sockNameSubs := "/tmp/ytfd.subs.sock"
-	if err := os.RemoveAll(sockNameSubs); err != nil {
-		fmt.Fprintf(os.Stderr, "[ERROR]: failed to remove all from 'subs' socket ('%v'): %v\n", sockNameSubs, err)
-		return
-	}
-	listenSubs, err := net.Listen("unix", sockNameSubs)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "[ERROR]: failed to listen to 'subs' socket ('%v'): %v\n", sockNameSubs, err)
-		return
-	}
-	listeners.add(listenSubs)
-	go handleSubs(listenSubs)
-
-	sockNameHealth := "/tmp/ytfd.health.sock"
-	if err := os.RemoveAll(sockNameHealth); err != nil {
-		fmt.Fprintf(os.Stderr, "[ERROR]: failed to remove all from 'health' socket ('%v'): %v\n", sockNameHealth, err)
-		return
-	}
-	listenHealth, err := net.Listen("unix", sockNameHealth)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "[ERROR]: failed to listen to 'health' socket ('%v'): %v\n", sockNameHealth, err)
-		return
-	}
-	listeners.add(listenHealth)
-	handleHealth(listenHealth)
 }
