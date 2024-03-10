@@ -5,9 +5,7 @@
 #include <errno.h>
 #include <string.h>
 
-// TODO: beter logging
-// TODO: help
-// TODO: readme
+// TODO: better logging
 
 int calc_buf_size(char pre_buf[3]) {
 	int buf_size = 2;
@@ -215,7 +213,7 @@ int help(int argc, char **argv) {
 	printf("\t<channel>\t\t\t\tget latest feed for a channel; if not subscribed to channel, fresh data is pulled from youtube\n");
 	printf("\thelp, -h, --help\t\tprint help\n");
 	printf("\thealth [message]\t\tchecks daemon health; if message given, daemon reflects it, otherwise responds with pre-set message\n");
-	printf("\tsubs\t\t\t\t\tprint list of subscribed channels\n");
+	printf("\tsubs\t\t\t\tprint list of subscribed channels\n");
 	printf("\tsearch <channel>\t\tsearch channel; partial search somewhat effective, search with typo not so much\n");
 	printf("\tsub <channel>\t\t\tsubscribe to channel\n");
 	printf("\tunsub <channel>\t\t\tunsubscribe to channel\n");

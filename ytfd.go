@@ -19,7 +19,6 @@ import (
 )
 
 // TODO: better logging
-// TODO: readme
 
 type db interface {
 	add(string, *channel) error
@@ -611,13 +610,13 @@ func handleSubs(l net.Listener) {
 	}
 }
 
-// help is a function to print program help.
 func help() {
-	fmt.Printf(".%v [-notify={true|false}] [-subs=/path/to/subs/file] [-refrate={minutes}] \n", os.Args[0])
+	fmt.Printf("%v [-notify={true|false}] [-subs=/path/to/subs/file] [-refrate={minutes}] \n", os.Args[0])
 	flag.PrintDefaults()
 	fmt.Printf("\nExamples:\n")
-	fmt.Printf("\t* .%v -subs=./example.subs -refrate=7 -notify\n", os.Args[0])
-	fmt.Printf("\t* .%v -subs=./example.subs -refrate=7 -notify=false\n", os.Args[0])
+	fmt.Printf("\t* %v -help\n", os.Args[0])
+	fmt.Printf("\t* %v -subs=./example.subs -refrate=7 -notify\n", os.Args[0])
+	fmt.Printf("\t* %v -subs=./example.subs -refrate=7 -notify=false\n", os.Args[0])
 }
 
 func main() {
