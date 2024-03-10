@@ -19,6 +19,7 @@ import (
 )
 
 // TODO: better logging
+// TODO: readme
 
 type db interface {
 	add(string, *channel) error
@@ -610,11 +611,26 @@ func handleSubs(l net.Listener) {
 	}
 }
 
+// help is a function to print program help.
+func help() {
+	fmt.Printf(".%v [-notify={true|false}] [-subs=/path/to/subs/file] [-refrate={minutes}] \n", os.Args[0])
+	flag.PrintDefaults()
+	fmt.Printf("\nExamples:\n")
+	fmt.Printf("\t* .%v -subs=./example.subs -refrate=7 -notify\n", os.Args[0])
+	fmt.Printf("\t* .%v -subs=./example.subs -refrate=7 -notify=false\n", os.Args[0])
+}
+
 func main() {
-	flagNotify = flag.Bool("notify", true, "creates dunstify notification when a new video for a subscribed channel is detected. Depends on dunstify. Default is `true`; if dunstify is not detected in the system, internal value is set to false")
+	flagNotify = flag.Bool("notify", true, "creates dunstify notification when a new video for a subscribed channel is detected. Depends on dunstify. If dunstify is not detected in the system, internal flag value is set to false")
 	flagSubsFromFile := flag.String("subs", "", "path to file that contains names of subscribed channels, one per each line")
 	flagRefreshRate = flag.Int("refrate", 15, "refresh rate in minutes, i.e. how often daemon checks youtube")
+	flagHelp := flag.Bool("help", false, "print help")
 	flag.Parse()
+
+	if *flagHelp {
+		help()
+		return
+	}
 
 	// gracefully close on exit
 	defer listeners.close()
