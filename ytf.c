@@ -5,13 +5,9 @@
 #include <errno.h>
 #include <string.h>
 
-// TODO: logging
-// TODO: better responses
-// TODO: convenience func to connect to socket. For now I'll type out manually for practice.
-// TODO: convenience func to close sockfd.
-// TODO: convenience func to handle errors
-// TODO: help function
-// MAYBE: TODO: testing; could have a special endpoint that swaps to "local db" instance and can run deterministic tests against that.
+// TODO: beter logging
+// TODO: help
+// TODO: readme
 
 int calc_buf_size(char pre_buf[3]) {
 	int buf_size = 2;
@@ -20,6 +16,26 @@ int calc_buf_size(char pre_buf[3]) {
 		buf_size *= 2;
 	}
 	return buf_size;
+}
+
+int prep_conn(char *path, int *fd) {
+	int sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
+	if (sockfd == -1) {
+		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
+		return errno;
+	}
+	struct sockaddr_un addr;
+	memset(&addr, 0, sizeof(addr));
+	addr.sun_family = AF_UNIX;
+	strncpy(addr.sun_path, path, sizeof(addr.sun_path)-1);
+
+	if (connect(sockfd, (struct sockaddr *) &addr, sizeof(addr)) == -1) {
+		close(sockfd);
+		fprintf(stderr, "[ERROR]: failed to connect to socket: %s\n", strerror(errno));
+		return errno;
+	}
+	*fd = sockfd;
+	return 0;
 }
 
 int handle_response(int sockfd) {
@@ -44,20 +60,10 @@ int handle_response(int sockfd) {
 }
 
 int handle_health(char *msg) {
-	int sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
-	if (sockfd == -1) {
-		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
-		return errno;
-	}
-	struct sockaddr_un addr;
-	memset(&addr, 0, sizeof(addr));
-	addr.sun_family = AF_UNIX;
-	strncpy(addr.sun_path, "/tmp/ytfd.health.sock", sizeof(addr.sun_path)-1);
-
-	if (connect(sockfd, (struct sockaddr *) &addr, sizeof(addr)) == -1) {
-		close(sockfd);
-		fprintf(stderr, "[ERROR]: failed to connect to socket: %s\n", strerror(errno));
-		return errno;
+	int sockfd;
+	int err = prep_conn("/tmp/ytfd.health.sock", &sockfd);
+	if (err != 0) {
+		return err;
 	}
 
 	int n = write(sockfd, msg, strlen(msg));
@@ -77,20 +83,10 @@ int handle_health(char *msg) {
 }
 
 int handle_sub(char *chan_name) {
-	int status = 0;
-	int sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
-	if (sockfd == -1) {
-		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
-		return errno;
-	}
-	struct sockaddr_un addr;
-	memset(&addr, 0, sizeof(addr));
-	addr.sun_family = AF_UNIX;
-	strncpy(addr.sun_path, "/tmp/ytfd.add.sock", sizeof(addr.sun_path)-1);
-	if (connect(sockfd, (struct sockaddr *) &addr, sizeof(addr)) == -1) {
-		close(sockfd);
-		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
-		return errno;
+	int sockfd;
+	int err = prep_conn("/tmp/ytfd.add.sock", &sockfd);
+	if (err != 0) {
+		return err;
 	}
 
 	int n = write(sockfd, chan_name, strlen(chan_name));
@@ -102,27 +98,17 @@ int handle_sub(char *chan_name) {
 
 	int successful = handle_response(sockfd);
 	if (!successful) {
-		status = EADDRINUSE; // TODO: better error code
+		return EADDRINUSE; // TODO: better error code
 	}
 
-	return status;		
+	return 0;		
 }
 
 int handle_search(char *channel_name) {
-	int sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
-	if (sockfd == -1) {
-		fprintf(stderr, "[ERROR]: socket search: %s\n", strerror(errno));
-		return errno;
-	}
-
-	struct sockaddr_un addr;
-	memset(&addr, 0, sizeof(addr));
-	addr.sun_family = AF_UNIX;
-	strncpy(addr.sun_path, "/tmp/ytfd.search.sock", sizeof(addr.sun_path)-1);
-	if (connect(sockfd, (struct sockaddr *)&addr, sizeof(addr)) == -1) {
-		close(sockfd);
-		fprintf(stderr, "[ERROR]: connect search: %s\n", strerror(errno));
-		return errno;
+	int sockfd;
+	int err = prep_conn("/tmp/ytfd.search.sock", &sockfd);
+	if (err != 0) {
+		return err;
 	}
 
 	int n = write(sockfd, channel_name, strlen(channel_name));
@@ -142,21 +128,10 @@ int handle_search(char *channel_name) {
 }
 
 int handle_unsub(char *channel_name) {
-	int sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
-	if (sockfd == -1) {
-		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
-		return errno;
-	}
-
-	struct sockaddr_un addr;
-	memset(&addr, 0, sizeof(addr));
-	addr.sun_family = AF_UNIX;
-	strncpy(addr.sun_path, "/tmp/ytfd.rm.sock", sizeof(addr.sun_path)-1);
-
-	if (connect(sockfd, (struct sockaddr *) &addr, sizeof(addr)) == -1) {
-		close(sockfd);
-		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
-		return errno;
+	int sockfd;
+	int err = prep_conn("/tmp/ytfd.rm.sock", &sockfd);
+	if (err != 0) {
+		return err;
 	}
 
 	int n = write(sockfd, channel_name, strlen(channel_name));
@@ -176,20 +151,10 @@ int handle_unsub(char *channel_name) {
 }
 
 int handle_subs() {
-	int sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
-	if (sockfd == -1) {
-		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
-		return errno;
-	}
-	struct sockaddr_un addr;
-	memset(&addr, 0, sizeof(addr));
-	addr.sun_family = AF_UNIX;
-	strncpy(addr.sun_path, "/tmp/ytfd.subs.sock", sizeof(addr.sun_path)-1);
-
-	if (connect(sockfd, (struct sockaddr *)&addr, sizeof(addr)) == -1) {
-		close(sockfd);
-		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
-		return errno;
+	int sockfd;
+	int err = prep_conn("/tmp/ytfd.subs.sock", &sockfd);
+	if (err != 0) {
+		return err;
 	}
 
 	handle_response(sockfd);
@@ -202,27 +167,12 @@ int handle_subs() {
 }
 
 int handle_fetch(char *channel_name) {
-	int sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
-	if (sockfd == -1) {
-		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
-		return errno;
+	int sockfd;
+	int err = prep_conn("/tmp/ytfd.get.sock", &sockfd);
+	if (err != 0) {
+		return err;
 	}
 
-	struct sockaddr_un addr_get;
-	memset(&addr_get, 0, sizeof(addr_get));
-	addr_get.sun_family = AF_UNIX;
-	strncpy(addr_get.sun_path, "/tmp/ytfd.get.sock", sizeof(addr_get.sun_path)-1);
-
-	struct sockaddr_un addr_fetch;
-	memset(&addr_fetch, 0, sizeof(addr_fetch));
-	addr_fetch.sun_family = AF_UNIX;
-	strncpy(addr_fetch.sun_path, "/tmp/ytfd.fetch.sock", sizeof(addr_fetch.sun_path)-1);
-
-	if (connect(sockfd, (struct sockaddr *)&addr_get, sizeof(addr_get)) == -1) {
-		close(sockfd);
-		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
-		return errno;
-	}
 	int n = write(sockfd, channel_name, strlen(channel_name));	
 	if (n == -1) {
 		close(sockfd);
@@ -231,28 +181,19 @@ int handle_fetch(char *channel_name) {
 	}
 
 	int successful = handle_response(sockfd);
-	if (successful) {
-		if (close(sockfd) == -1) {
-			fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
-			return errno;
-		}
-		return 0;
-	}
-
 	if (close(sockfd) == -1) {
 		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
 		return errno;
 	}
-	sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
-	if (sockfd == -1) {
-		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
-		return errno;
+	if (successful) {
+		return 0;
 	}
-	if (connect(sockfd, (struct sockaddr *)&addr_fetch, sizeof(addr_fetch)) == -1) {
-		close(sockfd);
-		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
-		return errno;
+
+	err = prep_conn("/tmp/ytfd.fetch.sock", &sockfd);
+	if (err != 0) {
+		return err;
 	}
+
 	n = write(sockfd, channel_name, strlen(channel_name));
 	if (n == -1) {
 		close(sockfd);
@@ -274,7 +215,6 @@ int help() {
 }
 
 int main(int argc, char **argv) {
-
 	if (argc == 2) {
 		if (strcmp(argv[1], "help") == 0 || strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0) {
 			return help();
@@ -301,16 +241,12 @@ int main(int argc, char **argv) {
 	} else if (strcmp(argv[1], "search") == 0) {
 		return handle_search(argv[2]);
 	} else if (strcmp(argv[1], "sub") == 0) {
-		if (handle_sub(argv[2]) == 0) {
-			return 0;
-		}
-		// return handle_search(argv[2]); // TODO: distinguish between conflict and incorrect channel name
+		return handle_sub(argv[2]);
 	} else if (strcmp(argv[1], "unsub") == 0) {
 		return handle_unsub(argv[2]);
 	} else if (strcmp(argv[1], "fetch") == 0 || strcmp(argv[1], "get") == 0) {
 		return handle_fetch(argv[2]);
 	} else {
-		// MAYBE: handle as fetch
 		fprintf(stderr, "[ERROR]: unsupported command: %s\n", argv[1]);
 		return EINVAL;
 	}
