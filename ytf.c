@@ -209,15 +209,35 @@ int handle_fetch(char *channel_name) {
 	return 0;
 }
 
-int help() {
-	printf("TODO:\n");
+int help(int argc, char **argv) {
+	printf("%s <action|channel>\n", argv[0]);
+	printf("ACTION:\n");
+	printf("\t<channel>\t\t\t\tget latest feed for a channel; if not subscribed to channel, fresh data is pulled from youtube\n");
+	printf("\thelp, -h, --help\t\tprint help\n");
+	printf("\thealth [message]\t\tchecks daemon health; if message given, daemon reflects it, otherwise responds with pre-set message\n");
+	printf("\tsubs\t\t\t\t\tprint list of subscribed channels\n");
+	printf("\tsearch <channel>\t\tsearch channel; partial search somewhat effective, search with typo not so much\n");
+	printf("\tsub <channel>\t\t\tsubscribe to channel\n");
+	printf("\tunsub <channel>\t\t\tunsubscribe to channel\n");
+	printf("\tfetch <channel>\t\t\tget latest feed for a channel; if not subscribed to channel, fresh data is pulled from youtube\n");
+	printf("\tget <channel>\t\t\tget latest feed for a channel; if not subscribed to channel, fresh data is pulled from youtube\n");
+	printf("EXAMPLES:\n");
+	printf("\t* %s health\n", argv[0]);
+	printf("\t* %s health 'hello world'\n", argv[0]);
+	printf("\t* %s subs\n", argv[0]);
+	printf("\t* %s tsodingdaily\n", argv[0]);
+	printf("\t* %s search ThePrimea\n", argv[0]);
+	printf("\t* %s sub ThePrimeTimeagen\n", argv[0]);
+	printf("\t* %s unsub ThePrimeTimeagen\n", argv[0]);
+	printf("\t* %s fetch TsodingDaily\n", argv[0]);
+	printf("\t* %s get tsodingdaily\n", argv[0]);
 	return 0;
 }
 
 int main(int argc, char **argv) {
 	if (argc == 2) {
 		if (strcmp(argv[1], "help") == 0 || strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0) {
-			return help();
+			return help(argc, argv);
 		} else if (strcmp(argv[1], "health") == 0) {
 			return handle_health("I'm! alive!!! muhahahaha!");
 		} else if (strcmp(argv[1], "subs") == 0) {
