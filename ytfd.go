@@ -19,17 +19,9 @@ import (
 )
 
 // TODO: write logs into file instead of stdout/stderr
-// TODO: add flags:
-// MAYBE: TODO: limit video count controllable with flag
-// TODO: better logging/responses
-// MABYE: TODO: more uniform func signatures
-// TODO: do GET calls with 'net' pkg
-// DONE: MAYBE: pre-msg: 1 byte for success/fail and 2 bytes for buf size in power of 2
-// i.e. 107 would mean:
-//		[1] call was successful
-// 		[07] there are up to 2^7 bytes to read
-// only send second msg if was successful
 // TODO: write the pre-msg approach to readme
+
+// NOTE: manual creation of listeners is for practice purposes, but ideas how to compact (MAYBE: compact).
 
 type db interface {
 	add(string, *channel) error
@@ -300,6 +292,10 @@ const (
 	success
 )
 
+// send is a function that takes the state (success/failure) and response message. It encodes the response in the following way
+// * first byte is the state, i.e. whether the request was successful or not.
+// * second and third byte form an exponent for base 2, where 2^exponent will fit the response message
+// * rest of the bytes is the response
 func send(c net.Conn, st state, resp string) {
 	pow := 1
 	for res := 2; res < len(resp); res *= 2 {
@@ -310,7 +306,6 @@ func send(c net.Conn, st state, resp string) {
 	msg = append(msg, byte(pow/10))
 	msg = append(msg, byte(pow%10))
 	msg = append(msg, []byte(resp)...)
-	fmt.Println("HERE", msg, resp)
 	c.Write(msg)
 	fmt.Fprintf(os.Stderr, "[INFO]: sending %v bytes\n", len(resp))
 }
@@ -326,7 +321,6 @@ func handleFetch(l net.Listener) {
 			defer c.Close()
 			channelName := make([]byte, 128)
 			n, err := c.Read(channelName)
-			// TODO: better error log.
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "[ERROR]: didn't understand '%v' for 'fetch': %v\n", string(channelName), err)
 				send(c, failure, "")
@@ -361,7 +355,6 @@ func handleAdd(l net.Listener) {
 			defer c.Close()
 			channelName := make([]byte, 128)
 			n, err := c.Read(channelName)
-			// TODO: better error log.
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "[ERROR]: didn't understand '%v' for 'add': %v\n", string(channelName), err)
 				send(c, failure, err.Error())
@@ -407,7 +400,6 @@ func handleGet(l net.Listener) {
 			defer c.Close()
 			channelName := make([]byte, 128)
 			n, err := conn.Read(channelName)
-			// TODO: better error log.
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "[ERROR]: didn't understand '%v' for 'get': %v\n", string(channelName), err)
 				send(c, failure, err.Error())
@@ -435,7 +427,6 @@ func handleRm(l net.Listener) {
 			defer c.Close()
 			channelName := make([]byte, 128)
 			n, err := c.Read(channelName)
-			// TODO: better error log.
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "[ERROR]: didn't understand '%v' for 'rm': %v\n", string(channelName), err)
 				send(c, failure, err.Error())
@@ -598,11 +589,6 @@ func handleSubs(l net.Listener) {
 		}(conn)
 	}
 }
-
-// NOTE: manual creation of listeners is for practice purposes, but ideas how to compact (MAYBE: compact).
-// TODO: handle Listen/Accept failures better/ re-instate handler if it fails to accept connection
-// MAYBE: TODO: debug endpoint
-// TODO: logging
 
 func main() {
 	flagNotify = flag.Bool("notify", true, "creates dunstify notification when a new video for a subscribed channel is detected. Depends on dunstify")
