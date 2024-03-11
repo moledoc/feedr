@@ -5,8 +5,6 @@
 #include <errno.h>
 #include <string.h>
 
-// TODO: better logging
-
 int calc_buf_size(char pre_buf[3]) {
 	int buf_size = 2;
 	int pow = pre_buf[1]*10+pre_buf[2];
@@ -19,7 +17,7 @@ int calc_buf_size(char pre_buf[3]) {
 int prep_conn(char *path, int *fd) {
 	int sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
 	if (sockfd == -1) {
-		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
+		fprintf(stderr, "failed to create a socket for '%s': %s\n", path, strerror(errno));
 		return errno;
 	}
 	struct sockaddr_un addr;
@@ -29,7 +27,7 @@ int prep_conn(char *path, int *fd) {
 
 	if (connect(sockfd, (struct sockaddr *) &addr, sizeof(addr)) == -1) {
 		close(sockfd);
-		fprintf(stderr, "[ERROR]: failed to connect to socket: %s\n", strerror(errno));
+		fprintf(stderr, "failed to connect to socket '%s': %s\n", path, strerror(errno));
 		return errno;
 	}
 	*fd = sockfd;
@@ -41,7 +39,7 @@ int handle_response(int sockfd) {
 	int n = read(sockfd, pre_buf, 3);
 	if (n == -1) {
 		close(sockfd);
-		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
+		fprintf(stderr, "failing to read pre-message from socket: %s\n", strerror(errno));
 		return errno;
 	}
 	int buf_size = calc_buf_size(pre_buf);
@@ -49,12 +47,32 @@ int handle_response(int sockfd) {
 	n = read(sockfd, buf, buf_size);
 	if (n == -1) {
 		close(sockfd);
-		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
+		fprintf(stderr, "failed to read from socket: %s\n", strerror(errno));
 		return errno;
 	}
 	buf[n] = '\0';
 	printf("%s\n", buf);
 	return pre_buf[0];
+}
+
+int close_socket(int sockfd) {
+	if (close(sockfd) == -1) {
+		fprintf(stderr, "failed to close socket: %s\n", strerror(errno));
+		return errno;
+	}
+	return 0;
+}
+
+int rw_err(int sockfd, int n) {
+	if (n == -1) {
+		fprintf(stderr, "failed to read or write to socket: %s\n", strerror(errno));
+		int sock_close_err = close_socket(sockfd);
+		if (sock_close_err) {
+			return sock_close_err;
+		}
+		return errno;
+	}
+	return 0;
 }
 
 int handle_health(char *msg) {
@@ -65,146 +83,113 @@ int handle_health(char *msg) {
 	}
 
 	int n = write(sockfd, msg, strlen(msg));
-	if (n == -1) {
-		close(sockfd);
-		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
-		return errno;
+	if ((err = rw_err(sockfd, n))) {
+		return err;
 	}
 
 	handle_response(sockfd);
-
-	if (close(sockfd) == -1) {
-		fprintf(stderr, "[WARNING]: %s\n", strerror(errno));
-		return errno;
-	}
-	return 0;
+	return close_socket(sockfd);
 }
 
 int handle_sub(char *chan_name) {
 	int sockfd;
 	int err = prep_conn("/tmp/ytfd.add.sock", &sockfd);
-	if (err != 0) {
+	if (err) {
 		return err;
 	}
 
 	int n = write(sockfd, chan_name, strlen(chan_name));
-	if (n == -1) {
-		close(sockfd);
-		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
-		return errno;
+	if ((err = rw_err(sockfd, n))) {
+		return err;
 	}
 
 	int successful = handle_response(sockfd);
+	int sock_close_err = close_socket(sockfd);
+	if (sock_close_err) {
+		return sock_close_err;
+	}
 	if (!successful) {
 		return EADDRINUSE; // TODO: better error code
 	}
-
-	return 0;		
+	return 0;	
 }
 
 int handle_search(char *channel_name) {
 	int sockfd;
 	int err = prep_conn("/tmp/ytfd.search.sock", &sockfd);
-	if (err != 0) {
+	if (err) {
 		return err;
 	}
 
 	int n = write(sockfd, channel_name, strlen(channel_name));
-	if (n == -1) {
-		close(sockfd);
-		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
-		return errno;
+	if ((err = rw_err(sockfd, n))) {
+		return err;
 	}
 
 	handle_response(sockfd);
-
-	if (close(sockfd) == -1) {
-		fprintf(stderr, "[ERROR]: close search: %s\n", strerror(errno));
-		return errno;
-	}
-	return 0;
+	return close_socket(sockfd);
 }
 
 int handle_unsub(char *channel_name) {
 	int sockfd;
 	int err = prep_conn("/tmp/ytfd.rm.sock", &sockfd);
-	if (err != 0) {
+	if (err) {
 		return err;
 	}
 
 	int n = write(sockfd, channel_name, strlen(channel_name));
-	if (n == -1) {
-		close(sockfd);
-		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
-		return errno;
+	if ((err = rw_err(sockfd, n))) {
+		return err;
 	}
 
 	handle_response(sockfd);
-
-	if (close(sockfd) == -1) {
-		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
-		return errno;
-	}
-	return 0;
+	return close_socket(sockfd);
 }
 
 int handle_subs() {
 	int sockfd;
 	int err = prep_conn("/tmp/ytfd.subs.sock", &sockfd);
-	if (err != 0) {
+	if (err) {
 		return err;
 	}
 
 	handle_response(sockfd);
-
-	if (close(sockfd) == -1) {
-		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
-		return errno;
-	}
-	return 0;
+	return close_socket(sockfd);
 }
 
 int handle_fetch(char *channel_name) {
 	int sockfd;
 	int err = prep_conn("/tmp/ytfd.get.sock", &sockfd);
-	if (err != 0) {
+	if (err) {
 		return err;
 	}
 
 	int n = write(sockfd, channel_name, strlen(channel_name));	
-	if (n == -1) {
-		close(sockfd);
-		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
-		return errno;
+	if ((err = rw_err(sockfd, n))) {
+		return err;
 	}
 
 	int successful = handle_response(sockfd);
-	if (close(sockfd) == -1) {
-		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
-		return errno;
+	int close_sockfd_err = close_socket(sockfd);
+	if (close_sockfd_err) {
+		return close_sockfd_err;
 	}
 	if (successful) {
 		return 0;
 	}
 
 	err = prep_conn("/tmp/ytfd.fetch.sock", &sockfd);
-	if (err != 0) {
+	if (err) {
 		return err;
 	}
 
 	n = write(sockfd, channel_name, strlen(channel_name));
-	if (n == -1) {
-		close(sockfd);
-		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
-		return errno;
+	if ((err = rw_err(sockfd, n))) {
+		return err;
 	}
 
 	handle_response(sockfd);
-	if (close(sockfd) == -1) {
-		fprintf(stderr, "[ERROR]: %s\n", strerror(errno));
-		return errno;
-	}
-	return 0;
+	return close_socket(sockfd);
 }
 
 int help(int argc, char **argv) {
@@ -241,7 +226,6 @@ int main(int argc, char **argv) {
 		} else if (strcmp(argv[1], "subs") == 0) {
 			return handle_subs();
 		} else {
-			// NOTE: monitor whether this makes sense
 			if (handle_fetch(argv[1]) == 0) {
 				return 0;
 			}
@@ -250,7 +234,7 @@ int main(int argc, char **argv) {
 	}
 
 	if (argc != 3) {
-		fprintf(stderr, "[ERROR]: invalid number of arguments, expected: <action> <channel>\n");
+		fprintf(stderr, "unexpected arguments; run `%s help`\n", argv[0]);
 		return EINVAL;
 	}
 
@@ -265,7 +249,7 @@ int main(int argc, char **argv) {
 	} else if (strcmp(argv[1], "fetch") == 0 || strcmp(argv[1], "get") == 0) {
 		return handle_fetch(argv[2]);
 	} else {
-		fprintf(stderr, "[ERROR]: unsupported command: %s\n", argv[1]);
+		fprintf(stderr, "unsupported command: %s\n", argv[1]);
 		return EINVAL;
 	}
 	return 0;
