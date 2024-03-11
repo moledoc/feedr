@@ -18,8 +18,6 @@ import (
 	"time"
 )
 
-// TODO: better logging
-
 type db interface {
 	add(string, *channel) error
 	get(string) (*channel, error)
@@ -68,6 +66,8 @@ const (
 	querySearchURLBase string = "https://www.youtube.com/results?search_query="
 )
 
+var logTo *os.File
+
 var (
 	listeners listenersChan = listenersChan(make(chan net.Listener, listenersSize))
 	feed      *localDb      = &localDb{c: make(map[string]*channel)}
@@ -92,7 +92,7 @@ func (lc listenersChan) close() {
 	}
 	for i := 0; i < listenersSize; i++ {
 		l := <-lc
-		fmt.Fprintf(os.Stdout, "[INFO]: closing listener: %v\n", l.Addr().String())
+		fmt.Fprintf(logTo, "[INFO]: closing listener: %v\n", l.Addr().String())
 		l.Close()
 	}
 	close(lc)
@@ -107,6 +107,7 @@ func (vs videos) String() string {
 	for _, v := range vs {
 		videosStr += v.String()
 	}
+	videosStr = videosStr[:len(videosStr)-1] // NOTE: rm last newline
 	return videosStr
 }
 
@@ -169,10 +170,13 @@ func subsFromFile(fname string) {
 			}
 			fetchedChannel, err := fetch(channelName, channelURL)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "[WARNING]: failed to fetch '%v': %v\n", string(channelName), err)
+				fmt.Fprintf(os.Stderr, "[ERROR]: failed to fetch '%v': %v\n", string(channelName), err)
 				return
 			}
-			feed.add(string(channelName), fetchedChannel)
+			err = feed.add(string(channelName), fetchedChannel)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "[WARNING]: failed to subscribe to channel '%v': %v\n", string(channelName), err)
+			}
 			fmt.Fprintf(os.Stderr, "[INFO]: channel '%v' stored\n", string(channelName))
 		}(chName)
 	}
@@ -193,6 +197,8 @@ func notify(chName string, vid *video) error {
 	cmd := exec.Command("dunstify", args...)
 	err := cmd.Run()
 	if err != nil {
+		fmt.Fprintf(logTo, "[WARNING]: dunstify failed, disabling notify flag: %v\n", err)
+		*flagNotify = false
 		return err
 	}
 	return nil
@@ -241,7 +247,7 @@ func (ldb *localDb) get(c string) (*channel, error) {
 	defer ldb.RUnlock()
 	ch, ok := ldb.c[c]
 	if !ok {
-		return nil, fmt.Errorf("channel '%v' not stored\n", c)
+		return nil, fmt.Errorf("not subscribed to channel '%v'", c)
 	}
 	return ch, nil
 }
@@ -269,11 +275,11 @@ func getChannelURL(bname []byte) ([]byte, error) {
 	name := string(bname)
 	name = strings.ReplaceAll(name, "\n", "")
 	if len(name) == 0 {
-		return []byte{}, fmt.Errorf("invalid channel name\n")
+		return []byte{}, fmt.Errorf("empty channel name")
 	}
 	resp, err := http.Get(channelURLBase + name)
 	if err != nil || resp.Body == nil {
-		return []byte{}, fmt.Errorf("failed to get '%v': %v\n", name, err)
+		return []byte{}, fmt.Errorf("failed to get '%v': %v", name, err)
 	}
 
 	bodyBytes, err := io.ReadAll(resp.Body)
@@ -286,7 +292,7 @@ func getChannelURL(bname []byte) ([]byte, error) {
 	feedURLBytes := re.Find(bodyBytes)
 
 	if len(feedURLBytes) == 0 {
-		return []byte{}, fmt.Errorf("channel '%v' not found\n", name)
+		return []byte{}, fmt.Errorf("channel '%v' not found", name)
 	}
 	return feedURLBytes, nil
 }
@@ -327,14 +333,20 @@ func send(c net.Conn, st state, resp string) {
 	msg = append(msg, byte(pow%10))
 	msg = append(msg, []byte(resp)...)
 	c.Write(msg)
-	fmt.Fprintf(os.Stderr, "[INFO]: sending %v bytes\n", len(resp))
+
+	lines := bytes.Split(msg[3:], []byte("\n"))
+	if len(lines) == 0 {
+		fmt.Fprintf(logTo, "[WARNING]: sending empty response\n")
+	} else {
+		fmt.Fprintf(logTo, "[INFO]: sending %v bytes, '%v...'\n", len(resp), string(lines[0]))
+	}
 }
 
 func handleFetch(l net.Listener) {
 	for {
 		conn, err := l.Accept()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "[ERROR]: 'fetch' handler failed to accept connection\n")
+			fmt.Fprintf(logTo, "[ERROR]: 'fetch' handler failed to accept connection\n")
 			return
 		}
 		go func(c net.Conn) {
@@ -342,21 +354,22 @@ func handleFetch(l net.Listener) {
 			channelName := make([]byte, 128)
 			n, err := c.Read(channelName)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "[ERROR]: didn't understand '%v' for 'fetch': %v\n", string(channelName), err)
-				send(c, failure, "")
+				fmt.Fprintf(logTo, "[ERROR]: didn't understand '%v' for 'fetch': %v\n", string(channelName), err)
+				send(c, failure, err.Error())
 				return
 			}
 			channelName = channelName[:n]
 			channelURL, err := getChannelURL(channelName)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "[ERROR]: %v\n", err)
-				send(c, failure, "")
+				fmt.Fprintf(logTo, "[ERROR]: failed to get channel '%v' url: %v\n", string(channelName), err)
+				send(c, failure, err.Error())
 				return
 			}
 
 			channelFetched, err := fetch(channelName, channelURL)
 			if err != nil {
-				send(c, failure, "")
+				fmt.Fprintf(logTo, "[ERROR]: failed to fetch '%v': %v\n", string(channelName), err)
+				send(c, failure, err.Error())
 				return
 			}
 			send(c, success, channelFetched.String())
@@ -368,7 +381,7 @@ func handleAdd(l net.Listener) {
 	for {
 		conn, err := l.Accept()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "[ERROR]: 'add' handler failed to accept connection\n")
+			fmt.Fprintf(logTo, "[ERROR]: 'add' handler failed to accept connection\n")
 			return
 		}
 		go func(c net.Conn) {
@@ -376,7 +389,7 @@ func handleAdd(l net.Listener) {
 			channelName := make([]byte, 128)
 			n, err := c.Read(channelName)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "[ERROR]: didn't understand '%v' for 'add': %v\n", string(channelName), err)
+				fmt.Fprintf(logTo, "[ERROR]: didn't understand '%v' for 'add': %v\n", string(channelName), err)
 				send(c, failure, err.Error())
 				return
 			}
@@ -388,19 +401,19 @@ func handleAdd(l net.Listener) {
 			}
 			channelURL, err := getChannelURL(channelName)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "[ERROR]: %v\n", err)
+				fmt.Fprintf(logTo, "[ERROR]: failed to get channel '%v' url: %v\n", string(channelName), err)
 				send(c, failure, err.Error())
 				return
 			}
 			channelFetched, err := fetch(channelName, channelURL)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "[ERROR]: failed to fetch '%v': %v\n", string(channelName), err)
+				fmt.Fprintf(logTo, "[ERROR]: failed to fetch '%v': %v\n", string(channelName), err)
 				send(c, failure, err.Error())
 				return
 			}
 			err = feed.add(string(channelName), channelFetched)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "[ERROR]: failed to add: %v\n", err)
+				fmt.Fprintf(logTo, "[ERROR]: failed to add: %v\n", err)
 				send(c, failure, err.Error())
 				return
 			}
@@ -413,7 +426,7 @@ func handleGet(l net.Listener) {
 	for {
 		conn, err := l.Accept()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "[ERROR]: 'get' handler failed to accept connection\n")
+			fmt.Fprintf(logTo, "[ERROR]: 'get' handler failed to accept connection\n")
 			return
 		}
 		go func(c net.Conn) {
@@ -421,17 +434,19 @@ func handleGet(l net.Listener) {
 			channelName := make([]byte, 128)
 			n, err := conn.Read(channelName)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "[ERROR]: didn't understand '%v' for 'get': %v\n", string(channelName), err)
+				fmt.Fprintf(logTo, "[ERROR]: didn't understand '%v' for 'get': %v\n", string(channelName), err)
 				send(c, failure, err.Error())
 				return
 			}
 			channelName = channelName[:n]
 			ch, err := feed.get(string(channelName))
 			if err != nil {
+				fmt.Fprintf(logTo, "[ERROR]: failed to get feed for channel '%v': %v\n", string(channelName), err)
 				send(c, failure, err.Error())
 				return
 			}
 			send(c, success, ch.String())
+			return
 		}(conn)
 	}
 }
@@ -440,7 +455,7 @@ func handleRm(l net.Listener) {
 	for {
 		conn, err := l.Accept()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "[ERROR]: 'rm' handler failed to accept connection\n")
+			fmt.Fprintf(logTo, "[ERROR]: 'rm' handler failed to accept connection\n")
 			return
 		}
 		go func(c net.Conn) {
@@ -448,13 +463,19 @@ func handleRm(l net.Listener) {
 			channelName := make([]byte, 128)
 			n, err := c.Read(channelName)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "[ERROR]: didn't understand '%v' for 'rm': %v\n", string(channelName), err)
+				fmt.Fprintf(logTo, "[ERROR]: didn't understand '%v' for 'rm': %v\n", string(channelName), err)
 				send(c, failure, err.Error())
 				return
 			}
 			channelName = channelName[:n]
-			feed.rm(string(channelName))
+			err = feed.rm(string(channelName))
+			if err != nil {
+				fmt.Fprintf(logTo, "[ERROR]: failed to rm channel '%v' from subscriptions: %v\n", string(channelName), err)
+				send(c, failure, err.Error())
+				return
+			}
 			send(c, success, fmt.Sprintf("unsubscribed from channel %q", string(channelName)))
+			return
 		}(conn)
 	}
 }
@@ -462,7 +483,7 @@ func handleRm(l net.Listener) {
 func refresh() {
 	subs, err := feed.subs()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "[ERROR]: failed to retrieve subs: %v\n", err)
+		fmt.Fprintf(logTo, "[ERROR]: failed to retrieve subs: %v\n", err)
 		return
 	}
 	var wg sync.WaitGroup
@@ -472,10 +493,15 @@ func refresh() {
 			defer wg.Done()
 			fetchedChannel, err := fetch(channelName, channelURL)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "[ERROR]: failed to fetch '%v' for refresh: %v\n", string(channelName), err)
+				fmt.Fprintf(logTo, "[ERROR]: failed to fetch '%v' for refresh: %v\n", string(channelName), err)
 				return
 			}
-			feed.add(string(channelName), fetchedChannel)
+			err = feed.add(string(channelName), fetchedChannel)
+			if err != nil {
+				fmt.Fprintf(logTo, "[WARNING]: failed to refresh channel '%v': %v\n", string(channelName), err)
+				return
+			}
+			return
 		}([]byte(sub.Name), []byte(sub.URL))
 	}
 	wg.Wait()
@@ -489,7 +515,7 @@ func handleRefresh(l net.Listener) {
 	for {
 		conn, err := l.Accept()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "[ERROR]: 'refresh' handler failed to accept connection\n")
+			fmt.Fprintf(logTo, "[ERROR]: 'refresh' handler failed to accept connection\n")
 			return
 		}
 		go func(c net.Conn) {
@@ -504,7 +530,7 @@ func search(query []byte) (string, error) {
 	query = bytes.ToLower(query)
 	resp, err := http.Get(querySearchURLBase + string(query))
 	if err != nil || resp.Body == nil {
-		return "", fmt.Errorf("failed to search for '%v': %v\n", string(query), err)
+		return "", fmt.Errorf("failed to search for '%v': %v", string(query), err)
 	}
 	respBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -535,7 +561,7 @@ func handleSearch(l net.Listener) {
 	for {
 		conn, err := l.Accept()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "[ERROR]: 'search' handler failed to accept connection\n")
+			fmt.Fprintf(logTo, "[ERROR]: 'search' handler failed to accept connection\n")
 			return
 		}
 		go func(c net.Conn) {
@@ -543,14 +569,14 @@ func handleSearch(l net.Listener) {
 			query := make([]byte, 128)
 			n, err := c.Read(query)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "[ERROR]: 'search' failed to read input: %v\n", err)
+				fmt.Fprintf(logTo, "[ERROR]: 'search' failed to read input: %v\n", err)
 				send(c, failure, err.Error())
 				return
 			}
 			query = query[:n]
 			chNames, err := search(query)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "[ERROR]: %v\n", err)
+				fmt.Fprintf(logTo, "[ERROR]: %v\n", err)
 				send(c, failure, err.Error())
 				return
 			}
@@ -563,7 +589,7 @@ func handleHealth(l net.Listener) {
 	for {
 		conn, err := l.Accept()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "[ERROR]: 'health' handler failed to accept connection\n")
+			fmt.Fprintf(logTo, "[ERROR]: 'health' handler failed to accept connection\n")
 			break
 		}
 		go func(c net.Conn) {
@@ -571,12 +597,12 @@ func handleHealth(l net.Listener) {
 			buf := make([]byte, 128)
 			n, err := c.Read(buf)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "[WARN]: failed to read input on 'health': %v\n", err)
+				fmt.Fprintf(logTo, "[WARN]: failed to read input on 'health': %v\n", err)
 				send(c, failure, err.Error())
 				return
 			}
 			buf = buf[:n]
-			response := fmt.Sprintf("'%v'", string(buf))
+			response := fmt.Sprintf("%q", string(buf))
 			send(c, success, response)
 		}(conn)
 	}
@@ -586,14 +612,14 @@ func handleSubs(l net.Listener) {
 	for {
 		conn, err := l.Accept()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "[ERROR]: 'subs' handler failed to accept connection\n")
+			fmt.Fprintf(logTo, "[ERROR]: 'subs' handler failed to accept connection\n")
 			return
 		}
 		go func(c net.Conn) {
 			defer c.Close()
 			chs, err := feed.subs()
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "[ERROR]: failed to retrieve subs: %v\n", err)
+				fmt.Fprintf(logTo, "[ERROR]: failed to retrieve subs: %v\n", err)
 				send(c, failure, err.Error())
 				return
 			}
@@ -611,12 +637,12 @@ func handleSubs(l net.Listener) {
 }
 
 func help() {
-	fmt.Printf("%v [-notify={true|false}] [-subs=/path/to/subs/file] [-refrate={minutes}] \n", os.Args[0])
+	fmt.Printf("%v [-notify={true|false}] [-subs=/path/to/subs/file] [-refrate={minutes}] [-debug]\n", os.Args[0])
 	flag.PrintDefaults()
 	fmt.Printf("\nExamples:\n")
 	fmt.Printf("\t* %v -help\n", os.Args[0])
 	fmt.Printf("\t* %v -subs=./example.subs -refrate=7 -notify\n", os.Args[0])
-	fmt.Printf("\t* %v -subs=./example.subs -refrate=7 -notify=false\n", os.Args[0])
+	fmt.Printf("\t* %v -subs=./example.subs -refrate=7 -notify=false -debug\n", os.Args[0])
 }
 
 func main() {
@@ -624,11 +650,24 @@ func main() {
 	flagSubsFromFile := flag.String("subs", "", "path to file that contains names of subscribed channels, one per each line")
 	flagRefreshRate = flag.Int("refrate", 15, "refresh rate in minutes, i.e. how often daemon checks youtube")
 	flagHelp := flag.Bool("help", false, "print help")
+	flagDebug := flag.Bool("debug", false, "sets logging to stderr")
 	flag.Parse()
 
 	if *flagHelp {
 		help()
 		return
+	}
+
+	if *flagDebug {
+		logTo = os.Stderr
+	} else {
+		var err error
+		logTo, err = os.OpenFile("/tmp/ytfd.log", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "[ERROR]: failed to open log file: %v\n", err)
+			return
+		}
+		defer logTo.Close()
 	}
 
 	// gracefully close on exit

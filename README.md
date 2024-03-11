@@ -31,7 +31,9 @@ EXAMPLES:
 `ytfd` (youtube feed daemon) is handling the backend for `ytf`. `ytfd` is written in Go.
 
 ```txt
-ytfd [-notify={true|false}] [-subs=/path/to/subs/file] [-refrate={minutes}] 
+ytfd [-notify={true|false}] [-subs=/path/to/subs/file] [-refrate={minutes}] [-debug] 
+  -debug
+    	sets logging to stderr
   -help
     	print help
   -notify
@@ -44,7 +46,7 @@ ytfd [-notify={true|false}] [-subs=/path/to/subs/file] [-refrate={minutes}]
 Examples:
 	* ./ytfd -help
 	* ./ytfd -subs=./example.subs -refrate=7 -notify
-	* ./ytfd -subs=./example.subs -refrate=7 -notify=false
+	* ./ytfd -subs=./example.subs -refrate=7 -notify=false -debug
 ```
 
 ## Author
