@@ -61,6 +61,7 @@ const (
 	listenersSize             = 8
 	maxFeedSize               = 7
 	channelURLBase     string = "https://www.youtube.com/@"
+	channelURLByIDBase string = "https://www.youtube.com/channel/"
 	feedURLBase        string = "https://www.youtube.com/feeds/videos.xml?channel_id="
 	watchURLStr        string = "https://www.youtube.com/watch?v="
 	querySearchURLBase string = "https://www.youtube.com/results?search_query="
@@ -107,7 +108,9 @@ func (vs videos) String() string {
 	for _, v := range vs {
 		videosStr += v.String()
 	}
-	videosStr = videosStr[:len(videosStr)-1] // NOTE: rm last newline
+	if len(videosStr) > 0 {
+		videosStr = videosStr[:len(videosStr)-1] // NOTE: rm last newline
+	}
 	return videosStr
 }
 
@@ -311,7 +314,17 @@ func fetch(chName []byte, chURL []byte) (*channel, error) {
 		return nil, err
 	}
 	fetchedChannel.Name = string(chName)
-	fetchedChannel.URL = string(chURL)
+	var channelURL string
+
+	channelURLElems := strings.Split(string(chURL), "=")
+	if len(channelURLElems) > 0 {
+		channelID := channelURLElems[1]
+		channelURL = channelURLByIDBase + channelID
+	} else {
+		channelURL = channelURLBase + string(chName)
+	}
+
+	fetchedChannel.URL = channelURL
 	if len(fetchedChannel.Videos) > maxFeedSize {
 		fetchedChannel.Videos = fetchedChannel.Videos[:maxFeedSize]
 	}

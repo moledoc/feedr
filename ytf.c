@@ -195,7 +195,7 @@ int handle_fetch(char *channel_name) {
 int help(int argc, char **argv) {
 	printf("%s <action|channel>\n", argv[0]);
 	printf("ACTION:\n");
-	printf("\t<channel>\t\t\t\tget latest feed for a channel; if not subscribed to channel, fresh data is pulled from youtube\n");
+	printf("\t<channel>\t\t\tget latest feed for a channel; if not subscribed to channel, fresh data is pulled from youtube\n");
 	printf("\thelp, -h, --help\t\tprint help\n");
 	printf("\thealth [message]\t\tchecks daemon health; if message given, daemon reflects it, otherwise responds with pre-set message\n");
 	printf("\tsubs\t\t\t\tprint list of subscribed channels\n");
