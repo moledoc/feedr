@@ -226,10 +226,12 @@ int main(int argc, char **argv) {
 		} else if (strcmp(argv[1], "subs") == 0) {
 			return handle_subs();
 		} else {
-			if (handle_fetch(argv[1]) == 0) {
-				return 0;
-			}
-			return handle_search(argv[1]);
+			fprintf(stderr, "unexpected arguments; run `%s help`\n", argv[0]);
+			return EINVAL;
+			// if (handle_fetch(argv[1]) == 0) {
+			// 	return 0;
+			// }
+			// return handle_search(argv[1]);
 		}
 	}
 
